@@ -43,3 +43,7 @@ Run the client:
 | [qwer854645](https://github.com/qwer854645) | Create: Voidway fork and extensions |
 
 Licensed under the [MIT License](LICENSE).
+
+## AI-Assisted Development Disclosure
+
+Parts of this project were created with the assistance of AI coding tools (including Cursor). AI was used to help with porting, refactoring, documentation, localization, and debugging. All changes are reviewed and maintained by [qwer854645](https://github.com/qwer854645), who remains responsible for the published code in this repository.
