@@ -1,6 +1,6 @@
 # Create: Voidway — Porting Notes
 
-Fork of [Create Utilities (Unofficial Port)](https://github.com/SmartStreamLabs/Create-Utilities-Unofficial-Port-) by xeli.
+Fork of [Create Utilities (Unofficial Port)](https://github.com/SmartStreamLabs/Create-Utilities-Unofficial-Port-) by [qwer854645](https://github.com/qwer854645).
 
 ## Mod Identity
 
