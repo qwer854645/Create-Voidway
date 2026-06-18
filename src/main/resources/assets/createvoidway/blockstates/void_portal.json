@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "createvoidway:block/void_portal_x"
+    },
+    "axis=z": {
+      "model": "createvoidway:block/void_portal_z"
+    }
+  }
+}

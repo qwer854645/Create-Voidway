@@ -65,6 +65,43 @@ public final class VoidwayConfig {
 			.comment("Void transfer fluid drained per tick while a void tank is operating.")
 			.defineInRange("voidTankTransferFluidDrainMbPerTick", 1, 0, 10000);
 
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_CHARGE_TICKS = BUILDER
+			.comment("Ticks entities must stand on a paired void teleport pad before a batch teleport.")
+			.defineInRange("voidTeleportChargeTicks", 60, 1, 6000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_LIVING_FLUID_COST_MB = BUILDER
+			.comment("Void transfer fluid consumed per living entity in a batch teleport.")
+			.defineInRange("voidTeleportLivingFluidCostMb", 500, 0, 100000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_ITEM_FLUID_COST_MB = BUILDER
+			.comment("Void transfer fluid consumed per item entity in a batch teleport.")
+			.defineInRange("voidTeleportItemFluidCostMb", 50, 0, 100000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_STRESS_BASE = BUILDER
+			.comment("Base stress demand (SU) added to the distance-scaled portion of a void teleport pad link.")
+			.defineInRange("voidTeleportStressBase", 64, 0, 1000000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_STRESS_PER_BLOCK = BUILDER
+			.comment("Additional stress demand (SU) per block of link distance between paired pads.")
+			.defineInRange("voidTeleportStressPerBlock", 12, 0, 1000000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_STRESS_MIN = BUILDER
+			.comment("Minimum stress demand (SU) for a void teleport pad link.")
+			.defineInRange("voidTeleportStressMin", 128, 0, 1000000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_STRESS_MAX = BUILDER
+			.comment("Maximum stress demand (SU) for a void teleport pad link, regardless of distance.")
+			.defineInRange("voidTeleportStressMax", 8192, 0, 1000000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_FLUID_SHARE_MB = BUILDER
+			.comment("Void transfer fluid moved per tick from the fuller paired pad to the emptier one while rotating.")
+			.comment("Set to 0 to disable paired fluid balancing.")
+			.defineInRange("voidTeleportFluidShareMbPerTick", 0, 0, 10000);
+
+	private static final ModConfigSpec.IntValue VOID_TELEPORT_FLUID_CAPACITY = BUILDER
+			.comment("Internal void transfer fluid tank capacity (mB) for void teleport pads.")
+			.defineInRange("voidTeleportFluidCapacity", 1000, 1, 1000000);
+
 	public static final ModConfigSpec SPEC = BUILDER.build();
 
 	private static int voidMotorInputLocalStressPercent = VOID_MOTOR_INPUT_LOCAL_STRESS_PERCENT.getDefault();
@@ -79,6 +116,15 @@ public final class VoidwayConfig {
 	private static int voidTankStressBase = VOID_TANK_STRESS_BASE.getDefault();
 	private static int voidTankStressAtFullChannel = VOID_TANK_STRESS_AT_FULL_CHANNEL.getDefault();
 	private static int voidTankTransferFluidDrainMbPerTick = VOID_TANK_TRANSFER_FLUID_DRAIN_MB.getDefault();
+	private static int voidTeleportChargeTicks = VOID_TELEPORT_CHARGE_TICKS.getDefault();
+	private static int voidTeleportLivingFluidCostMb = VOID_TELEPORT_LIVING_FLUID_COST_MB.getDefault();
+	private static int voidTeleportItemFluidCostMb = VOID_TELEPORT_ITEM_FLUID_COST_MB.getDefault();
+	private static int voidTeleportFluidShareMbPerTick = VOID_TELEPORT_FLUID_SHARE_MB.getDefault();
+	private static int voidTeleportStressBase = VOID_TELEPORT_STRESS_BASE.getDefault();
+	private static int voidTeleportStressPerBlock = VOID_TELEPORT_STRESS_PER_BLOCK.getDefault();
+	private static int voidTeleportStressMin = VOID_TELEPORT_STRESS_MIN.getDefault();
+	private static int voidTeleportStressMax = VOID_TELEPORT_STRESS_MAX.getDefault();
+	private static int voidTeleportFluidCapacity = VOID_TELEPORT_FLUID_CAPACITY.getDefault();
 
 	private VoidwayConfig() {}
 
@@ -138,6 +184,46 @@ public final class VoidwayConfig {
 		return voidTankTransferFluidDrainMbPerTick;
 	}
 
+	public static int getVoidTeleportChargeTicks() {
+		return voidTeleportChargeTicks;
+	}
+
+	public static int getVoidTeleportItemFluidCostMb() {
+		return voidTeleportItemFluidCostMb;
+	}
+
+	public static int getVoidTeleportLivingFluidCostMb() {
+		return voidTeleportLivingFluidCostMb;
+	}
+
+	public static int getVoidTeleportFluidShareMbPerTick() {
+		return voidTeleportFluidShareMbPerTick;
+	}
+
+	public static boolean isVoidTeleportFluidSharingEnabled() {
+		return voidTeleportFluidShareMbPerTick > 0;
+	}
+
+	public static int getVoidTeleportStressBase() {
+		return voidTeleportStressBase;
+	}
+
+	public static int getVoidTeleportStressPerBlock() {
+		return voidTeleportStressPerBlock;
+	}
+
+	public static int getVoidTeleportStressMin() {
+		return voidTeleportStressMin;
+	}
+
+	public static int getVoidTeleportStressMax() {
+		return voidTeleportStressMax;
+	}
+
+	public static int getVoidTeleportFluidCapacity() {
+		return voidTeleportFluidCapacity;
+	}
+
 	private static void load() {
 		voidMotorInputLocalStressPercent = VOID_MOTOR_INPUT_LOCAL_STRESS_PERCENT.get();
 		voidMotorInputTransferFluidDrainPercent = VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_PERCENT.get();
@@ -151,6 +237,15 @@ public final class VoidwayConfig {
 		voidTankStressBase = VOID_TANK_STRESS_BASE.get();
 		voidTankStressAtFullChannel = VOID_TANK_STRESS_AT_FULL_CHANNEL.get();
 		voidTankTransferFluidDrainMbPerTick = VOID_TANK_TRANSFER_FLUID_DRAIN_MB.get();
+		voidTeleportChargeTicks = VOID_TELEPORT_CHARGE_TICKS.get();
+		voidTeleportLivingFluidCostMb = VOID_TELEPORT_LIVING_FLUID_COST_MB.get();
+		voidTeleportItemFluidCostMb = VOID_TELEPORT_ITEM_FLUID_COST_MB.get();
+		voidTeleportFluidShareMbPerTick = VOID_TELEPORT_FLUID_SHARE_MB.get();
+		voidTeleportStressBase = VOID_TELEPORT_STRESS_BASE.get();
+		voidTeleportStressPerBlock = VOID_TELEPORT_STRESS_PER_BLOCK.get();
+		voidTeleportStressMin = VOID_TELEPORT_STRESS_MIN.get();
+		voidTeleportStressMax = VOID_TELEPORT_STRESS_MAX.get();
+		voidTeleportFluidCapacity = VOID_TELEPORT_FLUID_CAPACITY.get();
 	}
 
 	@SubscribeEvent

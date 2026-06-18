@@ -1,0 +1,22 @@
+{
+  "credit": "Create: Voidway",
+  "parent": "block/block",
+  "textures": {
+    "casing": "createvoidway:block/void_motor_casing",
+    "particle": "createvoidway:block/void_motor_casing"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "east": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "west": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#casing"}
+      }
+    }
+  ]
+}

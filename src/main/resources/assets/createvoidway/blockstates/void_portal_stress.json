@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "createvoidway:block/void_portal_stress/block" },
+    "facing=south": { "model": "createvoidway:block/void_portal_stress/block", "y": 180 },
+    "facing=west": { "model": "createvoidway:block/void_portal_stress/block", "y": 270 },
+    "facing=east": { "model": "createvoidway:block/void_portal_stress/block", "y": 90 }
+  }
+}

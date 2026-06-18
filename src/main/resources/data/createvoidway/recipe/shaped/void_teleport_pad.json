@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "L": {
+      "item": "createvoidway:void_teleport_link"
+    },
+    "C": {
+      "item": "createvoidway:void_casing"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    "L",
+    "C",
+    "S"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_teleport_pad"
+  }
+}

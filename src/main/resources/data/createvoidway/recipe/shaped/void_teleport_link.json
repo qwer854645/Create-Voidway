@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "createvoidway:polished_amethyst"
+    },
+    "G": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "C": {
+      "item": "createvoidway:void_casing"
+    }
+  },
+  "pattern": [
+    "A",
+    "G",
+    "C"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_teleport_link"
+  }
+}

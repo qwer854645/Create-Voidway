@@ -30,6 +30,30 @@ repositories {
     mavenCentral()
 }
 
+def patchDevClientConfig = {
+    def configDir = file('run/config')
+    configDir.mkdirs()
+
+    def flywheel = file('run/config/flywheel-client.toml')
+    if (flywheel.exists()) {
+        def text = flywheel.getText('UTF-8')
+        // OFF is invalid in Flywheel 1.0.6; instancing avoids indirect GL hangs on Windows.
+        text = text.replace('backend = "DEFAULT"', 'backend = "flywheel:instancing"')
+        text = text.replace('backend = "OFF"', 'backend = "flywheel:instancing"')
+        text = text.replace('backend = "flywheel:indirect"', 'backend = "flywheel:instancing"')
+        text = text.replace('workerThreads = -1', 'workerThreads = 0')
+        text = text.replace('workerThreads = 1', 'workerThreads = 0')
+        text = text.replace('workerThreads = 2', 'workerThreads = 0')
+        flywheel.setText(text, 'UTF-8')
+    }
+}
+
+tasks.register('prepareDevClientConfig') {
+    group = 'neoforge'
+    description = 'Apply stable dev client Flywheel settings for Windows exit hangs'
+    doLast(patchDevClientConfig)
+}
+
 neoForge {
     version = neo_version
 
@@ -37,6 +61,8 @@ neoForge {
         client {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            logLevel = org.slf4j.event.Level.INFO
+            taskBefore tasks.named('prepareDevClientConfig')
         }
 
         server {

@@ -7,6 +7,7 @@ import com.xeli.createvoidway.blocks.voidtypes.battery.AbstractVoidBatteryTileEn
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestOutputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorOutputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.tank.AbstractVoidTankTileEntity;
+import com.xeli.createvoidway.fluids.RWFluids;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.element.ElementLink;
 import net.createmod.ponder.api.element.EntityElement;
@@ -16,7 +17,6 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -127,7 +127,9 @@ public class VoidScenes {
 
 	}
 
-	public static void voidTank(SceneBuilder scene, SceneBuildingUtil util) {
+	public static void voidTank(SceneBuilder builder, SceneBuildingUtil util) {
+
+		CreateSceneBuilder scene = new CreateSceneBuilder(builder);
 
 		scene.title("void_tank", "Using Void Tanks");
 		scene.configureBasePlate(0, 0, 5);
@@ -180,7 +182,7 @@ public class VoidScenes {
 				.015f, 0,
 				"Void Tank", "Fluids",
 				sourcePos, receiverPos,
-				Direction.DOWN, Direction.DOWN,
+				Direction.UP, Direction.UP,
 				(pos) -> {},
 				(pos) -> scene.world().modifyBlockEntity(pos, AbstractVoidTankTileEntity.class,
 						te -> {
@@ -192,10 +194,14 @@ public class VoidScenes {
 
 	}
 
-	public static void voidBattery(SceneBuilder scene, SceneBuildingUtil util) {
+	public static void voidBattery(SceneBuilder builder, SceneBuildingUtil util) {
+
+		CreateSceneBuilder scene = new CreateSceneBuilder(builder);
 
 		scene.title("void_battery", "Using Void Batteries");
+		scene.configureBasePlate(0, 0, 5);
 		scene.showBasePlate();
+		scene.world().showSection(util.select().layer(0), Direction.UP);
 
 		BlockPos sourcePos = util.grid().at(3, 1, 2);
 		BlockPos receiverPos = util.grid().at(1, 1, 2);
@@ -218,7 +224,40 @@ public class VoidScenes {
 
 	}
 
-	private static void playVoidSequence(SceneBuilder scene,
+	public static void voidTransferFluid(SceneBuilder builder, SceneBuildingUtil util) {
+		CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+		scene.title("void_transfer_fluid", "Void Transfer Fluid");
+		PonderSceneHelper.start(scene, util, 5);
+
+		BlockPos chestPos = util.grid().at(2, 1, 2);
+		BlockPos tankPos = util.grid().at(3, 1, 2);
+
+		scene.world().showSection(util.select().position(chestPos), Direction.DOWN);
+		scene.idle(10);
+		scene.world().showSection(util.select().position(tankPos), Direction.WEST);
+		scene.idle(10);
+
+		scene.overlay().showText(60)
+				.text("Void Transfer Fluid is the catalyst consumed by many void devices while they operate")
+				.pointAt(util.vector().blockSurface(chestPos, Direction.NORTH));
+		scene.idle(70);
+
+		scene.overlay().showControls(util.vector().blockSurface(tankPos, Direction.WEST), Pointing.RIGHT, 40)
+				.withItem(RWFluids.getBucketStack());
+		scene.idle(10);
+
+		scene.overlay().showText(60)
+				.text("Pipe it into the sides of Void Chests, Batteries, and Teleport Pads, or into Void Motor Inputs")
+				.pointAt(util.vector().blockSurface(chestPos, Direction.EAST));
+		scene.idle(70);
+
+		scene.overlay().showText(50)
+				.text("Void Portals draw the fluid through their dedicated Fluid Port instead")
+				.pointAt(util.vector().topOf(chestPos));
+		scene.idle(60);
+	}
+
+	private static void playVoidSequence(CreateSceneBuilder scene,
 										 SceneBuildingUtil util,
 										 Class<? extends BlockEntity> beType,
 										 float shift, float yOffset,
@@ -334,7 +373,7 @@ public class VoidScenes {
 
 	}
 
-	private static void showFrequency(SceneBuilder scene,
+	private static void showFrequency(CreateSceneBuilder scene,
 									  Selection block,
 									  Class<? extends BlockEntity> beType,
 									  Vec3 slotPos,

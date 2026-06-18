@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
+import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import com.xeli.createvoidway.blocks.RWPartialsModels;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
@@ -72,7 +73,7 @@ public class AbstractVoidBatteryRenderer<T extends AbstractVoidBatteryTileEntity
 		Direction direction = Direction.DOWN;
 		Direction.Axis axis = direction.getAxis();
 
-		SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, direction);
+		SuperByteBuffer shaft = VoidShaftBuffers.partialHalfFacing(direction);
 
 		BlockPos pos = be.getBlockPos();
 		float time = AnimationTickHolder.getRenderTime(be.getLevel());

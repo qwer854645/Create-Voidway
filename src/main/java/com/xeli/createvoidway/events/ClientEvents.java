@@ -7,12 +7,14 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 public class ClientEvents {
 
 	public static void onTick(ClientTickEvent.Post event) {
-		if (!isGameActive()) return;
+		if (!isGameActive())
+			return;
 		VoidLinkRenderer.tick();
 	}
 
 	protected static boolean isGameActive() {
-		return !(Minecraft.getInstance().level == null || Minecraft.getInstance().player == null);
+		Minecraft mc = Minecraft.getInstance();
+		return mc.level != null && mc.player != null && mc.isRunning();
 	}
 
 }

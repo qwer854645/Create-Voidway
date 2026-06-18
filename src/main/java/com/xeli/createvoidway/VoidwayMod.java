@@ -9,6 +9,9 @@ import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryData;
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestInventory;
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestInventoriesData;
 import com.xeli.createvoidway.blocks.voidtypes.VoidStorageNetworkHandler;
+import com.xeli.createvoidway.blocks.teleport.VoidTeleportNetworkHandler;
+import com.xeli.createvoidway.blocks.portal.VoidPortalNetworkHandler;
+import com.xeli.createvoidway.blocks.portal.VoidPortalTrackProvider;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTank;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTanksData;
@@ -50,6 +53,8 @@ public class VoidwayMod {
 
 	public static final VoidMotorNetworkHandler VOID_MOTOR_LINK_NETWORK_HANDLER = new VoidMotorNetworkHandler();
 	public static final VoidStorageNetworkHandler VOID_STORAGE_LINK_NETWORK_HANDLER = new VoidStorageNetworkHandler();
+	public static final VoidTeleportNetworkHandler VOID_TELEPORT_NETWORK_HANDLER = new VoidTeleportNetworkHandler();
+	public static final VoidPortalNetworkHandler VOID_PORTAL_NETWORK_HANDLER = new VoidPortalNetworkHandler();
 	public static VoidChestInventoriesData VOID_CHEST_INVENTORIES_DATA;
 
 	public static VoidTanksData VOID_TANKS_DATA;
@@ -84,7 +89,10 @@ public class VoidwayMod {
 	}
 
 	private static void commonSetup(FMLCommonSetupEvent event) {
-		event.enqueueWork(VoidwayStress::register);
+		event.enqueueWork(() -> {
+			VoidwayStress.register();
+			VoidPortalTrackProvider.register();
+		});
 	}
 
 	private static void registerCapabilities(RegisterCapabilitiesEvent event) {
@@ -110,6 +118,12 @@ public class VoidwayMod {
 				(blockEntity, side) -> blockEntity.getEnergyHandler());
 		event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, RWTileEntities.VOID_BATTERY_OUTPUT.get(),
 				(blockEntity, side) -> blockEntity.getEnergyHandler());
+		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, RWTileEntities.VOID_TELEPORT_PAD.get(),
+				(blockEntity, side) -> blockEntity.getFluidHandler(side));
+		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, RWTileEntities.VOID_TELEPORT_PAD.get(),
+				(blockEntity, side) -> blockEntity.getItemHandler(side));
+		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, RWTileEntities.VOID_PORTAL_FLUID.get(),
+				(blockEntity, side) -> blockEntity.getFluidHandler(side));
 	}
 
 	private static void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent event) {

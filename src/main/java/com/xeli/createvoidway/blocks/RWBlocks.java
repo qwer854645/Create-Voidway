@@ -22,6 +22,13 @@ import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorInputBlock;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorOutputBlock;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankInputBlock;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankOutputBlock;
+import com.xeli.createvoidway.blocks.teleport.VoidTeleportLinkBlock;
+import com.xeli.createvoidway.blocks.teleport.VoidTeleportPadBlock;
+import com.xeli.createvoidway.blocks.portal.VoidPortalBlock;
+import com.xeli.createvoidway.blocks.portal.VoidPortalConnectorBlock;
+import com.xeli.createvoidway.blocks.portal.VoidPortalFluidBlock;
+import com.xeli.createvoidway.blocks.portal.VoidPortalFrameBlock;
+import com.xeli.createvoidway.blocks.portal.VoidPortalStressBlock;
 import com.xeli.createvoidway.items.RWItems;
 import com.xeli.createvoidway.mountedstorage.RWMountedStorages;
 import net.minecraft.client.renderer.RenderType;
@@ -175,6 +182,85 @@ public class RWBlocks {
 			.item()
 			.properties(p -> p.rarity(Rarity.EPIC))
 			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidTeleportLinkBlock> VOID_TELEPORT_LINK = REGISTRATE.block("void_teleport_link",
+			VoidTeleportLinkBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.transform(pickaxeOnly())
+			.item()
+			.properties(p -> p.rarity(Rarity.EPIC))
+			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidTeleportPadBlock> VOID_TELEPORT_PAD = REGISTRATE.block("void_teleport_pad",
+			VoidTeleportPadBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.transform(pickaxeOnly())
+			.item()
+			.properties(p -> p.rarity(Rarity.EPIC))
+			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidPortalFrameBlock> VOID_PORTAL_FRAME = REGISTRATE.block("void_portal_frame",
+			VoidPortalFrameBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(55.0F, 1200.0F))
+			.properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
+			.transform(pickaxeOnly())
+			.simpleItem()
+			.register();
+
+	public static final BlockEntry<VoidPortalFluidBlock> VOID_PORTAL_FLUID = REGISTRATE.block("void_portal_fluid",
+			VoidPortalFluidBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.transform(pickaxeOnly())
+			.item()
+			.properties(p -> p.rarity(Rarity.EPIC))
+			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidPortalStressBlock> VOID_PORTAL_STRESS = REGISTRATE.block("void_portal_stress",
+			VoidPortalStressBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.transform(pickaxeOnly())
+			.item()
+			.properties(p -> p.rarity(Rarity.EPIC))
+			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidPortalConnectorBlock> VOID_PORTAL_CONNECTOR = REGISTRATE.block("void_portal_connector",
+			VoidPortalConnectorBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.transform(pickaxeOnly())
+			.item()
+			.properties(p -> p.rarity(Rarity.EPIC))
+			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidPortalBlock> VOID_PORTAL = REGISTRATE.block("void_portal", VoidPortalBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.noCollission())
+			.properties(p -> p.noLootTable())
+			.properties(p -> p.lightLevel(state -> 11))
+			.properties(p -> p.strength(-1.0F, 3600000.0F))
 			.register();
 
 	public static final BlockEntry<GearcubeBlock> GEARCUBE = REGISTRATE.block("gearcube", GearcubeBlock::new)

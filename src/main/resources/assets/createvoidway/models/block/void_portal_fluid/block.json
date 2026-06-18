@@ -1,0 +1,8 @@
+{
+  "credit": "Create: Voidway",
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "create:block/copper_casing",
+    "particle": "create:block/copper_casing"
+  }
+}

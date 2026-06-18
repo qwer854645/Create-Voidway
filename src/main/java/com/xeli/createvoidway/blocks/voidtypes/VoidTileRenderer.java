@@ -2,15 +2,13 @@ package com.xeli.createvoidway.blocks.voidtypes;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-
+import com.xeli.createvoidway.client.ExitHangGuard;
 import com.xeli.createvoidway.voidlink.VoidLinkRenderer;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
-
 import org.joml.Matrix4f;
 
 public interface VoidTileRenderer<T extends SmartBlockEntity> {
@@ -22,18 +20,22 @@ public interface VoidTileRenderer<T extends SmartBlockEntity> {
 	float getFrameOffset(Direction direction);
 
 	default void renderVoid(T te, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+		if (ExitHangGuard.shouldSkipRenderLoopWork() || te.getLevel() == null)
+			return;
 		VoidLinkRenderer.renderOnTileEntity(te, partialTicks, ms, buffer, light, overlay, getSkullModelBase());
 		renderPortal(te, ms.last().pose(), buffer.getBuffer(RenderType.endPortal()));
 	}
 
 	private void renderPortal(T te, Matrix4f pose, VertexConsumer consumer) {
+		if (ExitHangGuard.shouldSkipRenderLoopWork())
+			return;
 
-		float x = (1F - getFrameWidth())*0.5F;
-		float z = (1F + getFrameWidth())*0.5F;
+		float x = (1F - getFrameWidth()) * 0.5F;
+		float z = (1F + getFrameWidth()) * 0.5F;
 
 		for (Direction direction : Direction.values()) {
-
-			if (!shouldRenderFrame(te, direction)) continue;
+			if (!shouldRenderFrame(te, direction))
+				continue;
 
 			float offSetValue = getFrameOffset(direction);
 			switch (direction) {
@@ -44,13 +46,11 @@ public interface VoidTileRenderer<T extends SmartBlockEntity> {
 				case WEST -> renderFrame(pose, consumer, 1 - offSetValue, 1 - offSetValue, x, z, x, z, z, x);
 				case EAST -> renderFrame(pose, consumer, offSetValue, offSetValue, z, x, x, z, z, x);
 			}
-
 		}
-
 	}
 
 	private void renderFrame(Matrix4f pose, VertexConsumer consumer,
-							 float x0, float x1, float y0, float y1, float z0, float z1, float z2, float z3) {
+			float x0, float x1, float y0, float y1, float z0, float z1, float z2, float z3) {
 		consumer.addVertex(pose, x0, y0, z0);
 		consumer.addVertex(pose, x1, y0, z1);
 		consumer.addVertex(pose, x1, y1, z2);

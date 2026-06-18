@@ -1,0 +1,9 @@
+{
+  "parent": "createvoidway:block/void_teleport_link/block",
+  "display": {
+    "gui": {
+      "rotation": [30, 225, 0],
+      "scale": [0.625, 0.625, 0.625]
+    }
+  }
+}

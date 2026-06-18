@@ -5,6 +5,7 @@ import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
@@ -54,7 +55,8 @@ public class DirectedVoidMotorRenderer<T extends KineticBlockEntity & IVoidMotor
 
 	@Override
 	protected SuperByteBuffer getRotatedModel(T te, BlockState state) {
-		return CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state);
+		Direction facing = state.getValue(DirectionalKineticBlock.FACING);
+		return VoidShaftBuffers.partialHalfFacing(facing);
 	}
 
 }

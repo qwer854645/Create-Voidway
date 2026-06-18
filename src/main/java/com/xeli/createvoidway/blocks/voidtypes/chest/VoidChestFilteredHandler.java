@@ -2,9 +2,10 @@ package com.xeli.createvoidway.blocks.voidtypes.chest;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 
-public class VoidChestFilteredHandler implements IItemHandler {
+public class VoidChestFilteredHandler implements IItemHandlerModifiable {
 
 	public enum Mode {
 		INSERT_ONLY,
@@ -12,7 +13,7 @@ public class VoidChestFilteredHandler implements IItemHandler {
 		BLOCKED
 	}
 
-	private final IItemHandler delegate;
+	private final IItemHandlerModifiable delegate;
 	private final Mode mode;
 
 	public VoidChestFilteredHandler(VoidChestInventory inventory, Mode mode) {
@@ -28,6 +29,11 @@ public class VoidChestFilteredHandler implements IItemHandler {
 	@Override
 	public @NotNull ItemStack getStackInSlot(int slot) {
 		return delegate.getStackInSlot(slot);
+	}
+
+	@Override
+	public void setStackInSlot(int slot, @NotNull ItemStack stack) {
+		delegate.setStackInSlot(slot, stack);
 	}
 
 	@Override

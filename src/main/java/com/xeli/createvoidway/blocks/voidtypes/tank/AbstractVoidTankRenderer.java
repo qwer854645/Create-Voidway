@@ -3,6 +3,7 @@ package com.xeli.createvoidway.blocks.voidtypes.tank;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
+import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import net.createmod.catnip.animation.AnimationTickHolder;
@@ -58,7 +59,7 @@ public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> exte
 		Direction direction = Direction.DOWN;
 		Direction.Axis axis = direction.getAxis();
 
-		SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, direction)
+		SuperByteBuffer shaft = VoidShaftBuffers.partialHalfFacing(direction)
 				.translate(0, BOTTOM_SHAFT_Y_OFFSET, 0)
 				.center()
 				.scale(0, BOTTOM_SHAFT_Y_SCALE, 0)

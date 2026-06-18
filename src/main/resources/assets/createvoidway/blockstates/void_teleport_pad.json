@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "waterlogged=false": {
+      "model": "createvoidway:block/void_teleport_pad/block"
+    },
+    "waterlogged=true": {
+      "model": "createvoidway:block/void_teleport_pad/block"
+    }
+  }
+}

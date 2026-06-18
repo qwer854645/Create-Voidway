@@ -40,6 +40,12 @@ public class RWCreativeTabs {
 						output.accept(RWBlocks.VOID_TANK_INPUT);
 						output.accept(RWBlocks.VOID_BATTERY_OUTPUT);
 						output.accept(RWBlocks.VOID_BATTERY_INPUT);
+						output.accept(RWBlocks.VOID_TELEPORT_LINK);
+						output.accept(RWBlocks.VOID_TELEPORT_PAD);
+						output.accept(RWBlocks.VOID_PORTAL_FRAME);
+						output.accept(RWBlocks.VOID_PORTAL_FLUID);
+						output.accept(RWBlocks.VOID_PORTAL_STRESS);
+						output.accept(RWBlocks.VOID_PORTAL_CONNECTOR);
 						output.accept(RWItems.POLISHED_AMETHYST);
 						output.accept(RWItems.GRAVITON_TUBE);
 						output.accept(RWBlocks.GEARCUBE);

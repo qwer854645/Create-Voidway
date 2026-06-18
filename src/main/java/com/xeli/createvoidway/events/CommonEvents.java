@@ -16,6 +16,8 @@ public class CommonEvents {
 		LevelAccessor level = event.getLevel();
 		VoidwayMod.VOID_MOTOR_LINK_NETWORK_HANDLER.onLoadWorld(level);
 		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.onLoadWorld(level);
+		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onLoadWorld(level);
+		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.onLoadWorld(level);
 
 		MinecraftServer server = level.getServer();
 		if (server == null)
@@ -36,6 +38,8 @@ public class CommonEvents {
 	public static void onUnload(LevelEvent.Unload event) {
 		VoidwayMod.VOID_MOTOR_LINK_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
+		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
+		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 	}
 
 }
