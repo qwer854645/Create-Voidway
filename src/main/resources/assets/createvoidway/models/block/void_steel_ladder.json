@@ -1,0 +1,8 @@
+{
+  "parent": "create:block/ladder",
+  "textures": {
+    "0": "createvoidway:block/void_steel_ladder_hoop",
+    "1": "createvoidway:block/void_steel_ladder",
+    "particle": "createvoidway:block/void_steel_ladder"
+  }
+}

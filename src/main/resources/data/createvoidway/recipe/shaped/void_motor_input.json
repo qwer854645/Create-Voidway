@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "M": {
+      "item": "createvoidway:void_motor_output"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "B": {
+      "item": "minecraft:bucket"
+    }
+  },
+  "pattern": [
+    "C",
+    "M",
+    "B"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_motor_input"
+  }
+}

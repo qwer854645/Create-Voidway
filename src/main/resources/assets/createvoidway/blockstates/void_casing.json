@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "createvoidway:block/void_casing"
+    }
+  }
+}

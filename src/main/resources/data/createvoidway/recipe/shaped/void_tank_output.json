@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "Y": {
+      "item": "createvoidway:void_casing"
+    },
+    "Z": {
+      "item": "minecraft:barrel"
+    }
+  },
+  "pattern": [
+    "X",
+    "Z",
+    "Y"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_tank_output"
+  }
+}

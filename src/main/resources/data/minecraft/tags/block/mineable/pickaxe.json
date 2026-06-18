@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "createvoidway:void_steel_block",
+    "createvoidway:void_steel_scaffolding",
+    "createvoidway:void_steel_ladder",
+    "createvoidway:void_steel_bars",
+    "createvoidway:void_casing",
+    "createvoidway:void_motor_output",
+    "createvoidway:void_motor_input",
+    "createvoidway:void_chest_output",
+    "createvoidway:void_chest_input",
+    "createvoidway:void_tank_output",
+    "createvoidway:void_tank_input",
+    "createvoidway:void_battery_output",
+    "createvoidway:void_battery_input",
+    "createvoidway:gearcube",
+    "createvoidway:lshaped_gearbox",
+    "createvoidway:amethyst_tiles",
+    "createvoidway:small_amethyst_tiles"
+  ]
+}

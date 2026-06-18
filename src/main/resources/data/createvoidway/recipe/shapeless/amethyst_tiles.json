@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "ingredients":  [
+                        {
+                            "item":  "createvoidway:small_amethyst_tiles"
+                        }
+                    ],
+    "result":  {
+                   "count":  1,
+                   "id":  "createvoidway:amethyst_tiles"
+               }
+}

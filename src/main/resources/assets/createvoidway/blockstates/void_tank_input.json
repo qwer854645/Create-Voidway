@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "closed=false": {
+      "model": "createvoidway:block/void_tank/block_window",
+      "y": 180
+    },
+    "closed=true": {
+      "model": "createvoidway:block/void_tank/block_plain",
+      "y": 180
+    }
+  }
+}

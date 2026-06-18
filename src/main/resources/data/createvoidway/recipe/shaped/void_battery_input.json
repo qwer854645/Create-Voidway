@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "M": {
+      "item": "createvoidway:void_battery_output"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "C",
+    "M",
+    "R"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_battery_input"
+  }
+}

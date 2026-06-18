@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "M": {
+      "item": "createvoidway:void_chest_output"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    }
+  },
+  "pattern": [
+    "C",
+    "M",
+    "H"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_chest_input"
+  }
+}

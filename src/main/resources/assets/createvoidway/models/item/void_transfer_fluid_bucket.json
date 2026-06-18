@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "createvoidway:item/void_transfer_fluid_bucket"
+  }
+}

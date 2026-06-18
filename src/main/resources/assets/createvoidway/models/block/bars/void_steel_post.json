@@ -1,0 +1,8 @@
+{
+  "parent": "create:block/bars/post",
+  "textures": {
+    "bars": "createvoidway:block/bars/void_steel_bars",
+    "particle": "createvoidway:block/bars/void_steel_bars",
+    "edge": "createvoidway:block/bars/void_steel_bars_edge"
+  }
+}

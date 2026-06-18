@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "X": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "Y": {
+      "item": "createvoidway:void_casing"
+    },
+    "Z": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    "R",
+    "X",
+    "Y",
+    "Z"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_motor_output"
+  }
+}

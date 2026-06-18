@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "createvoidway:block/void_battery/block"
+    },
+    "facing=east": {
+      "model": "createvoidway:block/void_battery/block",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "createvoidway:block/void_battery/block",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "createvoidway:block/void_battery/block",
+      "y": 270
+    }
+  }
+}

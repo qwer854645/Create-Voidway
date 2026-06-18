@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "Y": {
+      "item": "createvoidway:void_casing"
+    },
+    "Z": {
+      "tag": "c:plates/copper"
+    },
+    "W": {
+      "tag": "c:nuggets/gold"
+    }
+  },
+  "pattern": [
+    " X ",
+    "ZYZ",
+    " W "
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_battery_output"
+  }
+}

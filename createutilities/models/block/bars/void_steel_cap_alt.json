@@ -1,8 +1,0 @@
-{
-  "parent": "create:block/bars/cap_alt",
-  "textures": {
-    "bars": "createutilities:block/bars/void_steel_bars",
-    "particle": "createutilities:block/bars/void_steel_bars",
-    "edge": "createutilities:block/bars/void_steel_bars_edge"
-  }
-}

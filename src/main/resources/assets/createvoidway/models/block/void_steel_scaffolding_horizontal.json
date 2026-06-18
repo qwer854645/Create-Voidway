@@ -1,0 +1,10 @@
+{
+  "parent": "create:block/scaffold/block_horizontal",
+  "textures": {
+    "top": "createvoidway:block/scaffold/void_steel_funnel_frame",
+    "inside": "createvoidway:block/scaffold/void_steel_scaffold_inside",
+    "side": "createvoidway:block/scaffold/void_steel_scaffold",
+    "casing": "createvoidway:block/void_casing",
+    "particle": "createvoidway:block/scaffold/void_steel_scaffold"
+  }
+}

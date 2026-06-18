@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "X": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "Y": {
+      "item": "createvoidway:void_casing"
+    },
+    "Z": {
+      "item": "minecraft:chest"
+    }
+  },
+  "pattern": [
+    "R",
+    "X",
+    "Z",
+    "Y"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_chest_output"
+  }
+}

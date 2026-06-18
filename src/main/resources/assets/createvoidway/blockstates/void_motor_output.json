@@ -1,0 +1,26 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "createvoidway:block/void_motor/block_vertical",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "createvoidway:block/void_motor/block_vertical"
+    },
+    "facing=north": {
+      "model": "createvoidway:block/void_motor/block",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "createvoidway:block/void_motor/block"
+    },
+    "facing=west": {
+      "model": "createvoidway:block/void_motor/block",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "createvoidway:block/void_motor/block",
+      "y": 270
+    }
+  }
+}

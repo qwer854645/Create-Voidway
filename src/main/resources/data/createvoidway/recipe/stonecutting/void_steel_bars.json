@@ -1,0 +1,10 @@
+{
+    "type":  "minecraft:stonecutting",
+    "ingredient":  {
+                       "item":  "createvoidway:void_steel_ingot"
+                   },
+    "result":  {
+                   "count":  4,
+                   "id":  "createvoidway:void_steel_bars"
+               }
+}

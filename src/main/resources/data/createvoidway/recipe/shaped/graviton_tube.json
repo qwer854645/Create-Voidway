@@ -1,0 +1,19 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "X":  {
+                          "item":  "createvoidway:polished_amethyst"
+                      },
+                "Y":  {
+                          "item":  "createvoidway:void_steel_sheet"
+                      }
+            },
+    "pattern":  [
+                    "X",
+                    "Y"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "createvoidway:graviton_tube"
+               }
+}
