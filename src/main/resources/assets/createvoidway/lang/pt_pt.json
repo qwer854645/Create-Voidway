@@ -1,7 +1,6 @@
 {
   "itemGroup.createvoidway.base": "Create: Via do Vazio",
 
-  "block.createvoidway.gearcube": "Cubo de Transmissão com 6 Eixos",
   "block.createvoidway.lshaped_gearbox": "Caixa de Transmissão em L",
   "fluid.createvoidway.void_transfer_fluid": "Fluido de Transferência do Vazio",
   "item.createvoidway.void_transfer_fluid_bucket": "Balde de Fluido de Transferência do Vazio",
@@ -71,10 +70,6 @@
   "createvoidway.void_motor_input.linked_outputs": "Saídas ligadas: %s",
   "createvoidway.void_motor.channel_stress_total": "Stress do canal: %s SU",
   "createvoidway.void_motor.not_linked": "Nenhum motor emparelhado nesta frequência",
-
-  "createvoidway.ponder.gearcube.header": "Transmitindo Força de Rotação usando Caixas de Transmissão de 6 Eixos",
-  "createvoidway.ponder.gearcube.text_1": "Transmitir Força de Rotação em todas as direções pode ficar volumoso",
-  "createvoidway.ponder.gearcube.text_2": "Uma Caixa de Transmissão de 6 Eixos de transmissão é o equivalente mais compacto desta configuração",
 
   "createvoidway.ponder.lshaped_gearbox.header": "Transmitindo Força de Rotação usando Caixas de Transmissão em L",
   "createvoidway.ponder.lshaped_gearbox.text_1": "Mudar de direção pode ficar volumoso rapidamente",

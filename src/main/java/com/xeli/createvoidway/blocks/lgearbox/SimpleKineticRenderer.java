@@ -1,4 +1,4 @@
-package com.xeli.createvoidway.blocks.gearcube;
+package com.xeli.createvoidway.blocks.lgearbox;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllPartialModels;
@@ -25,17 +25,20 @@ public class SimpleKineticRenderer<T extends KineticBlockEntity> extends Kinetic
 
 	@Override
 	protected void renderSafe(T be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-		if (VisualizationManager.supportsVisualization(be.getLevel())) return;
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
+			return;
 
 		BlockState state = be.getBlockState();
-		if (!(state.getBlock() instanceof IRotate block)) return;
+		if (!(state.getBlock() instanceof IRotate block))
+			return;
 
 		final BlockPos pos = be.getBlockPos();
 		float time = AnimationTickHolder.getRenderTime(be.getLevel());
 
 		for (Direction direction : Iterate.directions) {
 
-			if (!block.hasShaftTowards(be.getLevel(), pos, state, direction)) continue;
+			if (!block.hasShaftTowards(be.getLevel(), pos, state, direction))
+				continue;
 			Direction.Axis axis = direction.getAxis();
 
 			SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, direction);

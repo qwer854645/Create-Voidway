@@ -66,12 +66,11 @@ Crafting and building blocks from the original Create Utilities set:
 
 ### Kinetics
 
-- **6-Axis Gearbox (Gearcube)** — compact six-way shaft routing
 - **L-Shaped Gearbox** — corner gearbox variant
 
 ### In-game guides (Ponder)
 
-Ponder scenes cover void motors, chests, tanks, batteries, I/O pairing, the node terminal, teleport pads/links, portals, gearboxes, and void transfer fluid.
+Ponder scenes cover void motors, chests, tanks, batteries, I/O pairing, the node terminal, teleport pads/links, portals, the L-shaped gearbox, and void transfer fluid.
 
 ## Requirements
 
@@ -108,4 +107,4 @@ Licensed under the [MIT License](LICENSE). The license retains copyright notices
 
 ## AI-Assisted Development Disclosure
 
-Parts of this project were created with the assistance of AI coding tools (including Cursor). AI was used to help with porting, refactoring, documentation, localization, and debugging. All changes are reviewed and maintained by [qwer854645](https://github.com/qwer854645), who remains responsible for the published code in this repository.
+This project was created with AI assistance.

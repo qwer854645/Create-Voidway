@@ -1,6 +1,5 @@
 {
   "itemGroup.createvoidway.base": "Create: Voidway",
-  "block.createvoidway.gearcube": "6-Axis Gearbox",
   "block.createvoidway.lshaped_gearbox": "L-Shaped Gearbox",
   "fluid.createvoidway.void_transfer_fluid": "Void Transfer Fluid",
   "item.createvoidway.void_transfer_fluid_bucket": "Void Transfer Fluid Bucket",
@@ -80,9 +79,6 @@
   "createvoidway.void_motor_input.linked_outputs": "Linked outputs: %s",
   "createvoidway.void_motor.channel_stress_total": "Channel stress: %s SU",
   "createvoidway.void_motor.not_linked": "No paired motor on this frequency",
-  "createvoidway.ponder.gearcube.header": "Relaying Rotational Force using 6-Axis Gearboxes",
-  "createvoidway.ponder.gearcube.text_1": "Relaying rotation in all directions can get bulky quickly",
-  "createvoidway.ponder.gearcube.text_2": "A 6-Axis Gearcube is the more compact equivalent of this setup",
   "createvoidway.ponder.lshaped_gearbox.header": "Relaying Rotational Force using L-Shaped Gearboxes",
   "createvoidway.ponder.lshaped_gearbox.text_1": "Changing directions can get bulky quickly",
   "createvoidway.ponder.lshaped_gearbox.text_2": "A more compact alternative to this setup is using a Gearbox, but two shafts go unused",

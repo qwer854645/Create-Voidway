@@ -44,7 +44,6 @@ public class RWPonders {
 		BLOCK.addStoryBoard(RWBlocks.VOID_PORTAL_FLUID, "void_portal", PortalScenes::voidPortal);
 		BLOCK.addStoryBoard(RWBlocks.VOID_PORTAL_STRESS, "void_portal", PortalScenes::voidPortal);
 
-		BLOCK.addStoryBoard(RWBlocks.GEARCUBE, "gearcube", GearboxScenes::gearCube);
 		BLOCK.addStoryBoard(RWBlocks.LSHAPED_GEARBOX, "lshaped_gearbox", GearboxScenes::lShapedGearbox);
 
 		helper.withKeyFunction(BuiltInRegistries.ITEM::getKey)

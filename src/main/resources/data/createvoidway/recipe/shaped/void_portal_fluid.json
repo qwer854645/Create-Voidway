@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "X": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "Y": {
+      "item": "createvoidway:void_casing"
+    }
+  },
+  "pattern": [
+    "X",
+    "P",
+    "Y"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createvoidway:void_portal_fluid"
+  }
+}

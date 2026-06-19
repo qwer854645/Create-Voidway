@@ -4,9 +4,8 @@ import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.OrientedRotatingVisual;
 import com.simibubi.create.content.kinetics.gearbox.GearboxBlockEntity;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
-import com.xeli.createvoidway.blocks.gearcube.GearcubeVisual;
-import com.xeli.createvoidway.blocks.gearcube.SimpleKineticRenderer;
 import com.xeli.createvoidway.blocks.lgearbox.LShapedGearboxVisual;
+import com.xeli.createvoidway.blocks.lgearbox.SimpleKineticRenderer;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryInputRenderer;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryInputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryOutputRenderer;
@@ -131,13 +130,6 @@ public class RWTileEntities {
 			.visual(() -> VoidNodeTerminalVisual::new, true)
 			.validBlocks(RWBlocks.VOID_NODE_TERMINAL)
 			.renderer(() -> VoidNodeTerminalRenderer::new)
-			.register();
-
-	public static final BlockEntityEntry<GearboxBlockEntity> GEARCUBE = REGISTRATE
-			.blockEntity("gearcube", GearboxBlockEntity::new)
-			.visual(() -> GearcubeVisual::new, false)
-			.validBlocks(RWBlocks.GEARCUBE)
-			.renderer(() -> SimpleKineticRenderer::new)
 			.register();
 
 	public static final BlockEntityEntry<GearboxBlockEntity> LSHAPED_GEARBOX = REGISTRATE

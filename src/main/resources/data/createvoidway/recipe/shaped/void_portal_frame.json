@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "S": {
+      "item": "createvoidway:void_steel_ingot"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "SOS",
+    "SSS"
+  ],
+  "result": {
+    "count": 8,
+    "id": "createvoidway:void_portal_frame"
+  }
+}

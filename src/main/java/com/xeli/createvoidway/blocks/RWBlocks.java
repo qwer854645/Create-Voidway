@@ -12,7 +12,6 @@ import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.DataIngredient;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import com.xeli.createvoidway.blocks.gearcube.GearcubeBlock;
 import com.xeli.createvoidway.blocks.lgearbox.LShapedGearboxBlock;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryInputBlock;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryOutputBlock;
@@ -286,15 +285,6 @@ public class RWBlocks {
 			.properties(p -> p.strength(30F, 600.0F))
 			.properties(p -> p.noLootTable())
 			.transform(pickaxeOnly())
-			.register();
-
-	public static final BlockEntry<GearcubeBlock> GEARCUBE = REGISTRATE.block("gearcube", GearcubeBlock::new)
-			.initialProperties(SharedProperties::stone)
-			.properties(BlockBehaviour.Properties::noOcclusion)
-			.properties(p -> p.mapColor(MapColor.PODZOL))
-			//.transform(CStress.setNoImpact())
-			.transform(axeOrPickaxe())
-			.simpleItem()
 			.register();
 
 	public static final BlockEntry<LShapedGearboxBlock> LSHAPED_GEARBOX = REGISTRATE.block("lshaped_gearbox", LShapedGearboxBlock::new)

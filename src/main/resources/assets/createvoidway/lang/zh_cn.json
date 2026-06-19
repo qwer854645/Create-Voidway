@@ -1,6 +1,5 @@
 {
   "itemGroup.createvoidway.base": "机械动力：虚空通道",
-  "block.createvoidway.gearcube": "六轴齿轮箱",
   "block.createvoidway.lshaped_gearbox": "L形齿轮箱",
   "fluid.createvoidway.void_transfer_fluid": "虚空传送液",
   "item.createvoidway.void_transfer_fluid_bucket": "虚空传送液桶",
@@ -80,9 +79,6 @@
   "createvoidway.void_motor_input.linked_outputs": "已链接输出端：%s",
   "createvoidway.void_motor.channel_stress_total": "频道总应力：%s SU",
   "createvoidway.void_motor.not_linked": "此频率下无配对马达",
-  "createvoidway.ponder.gearcube.header": "使用六轴齿轮箱传递旋转力",
-  "createvoidway.ponder.gearcube.text_1": "这种向所有方向传递旋转力的方式显得相当笨重",
-  "createvoidway.ponder.gearcube.text_2": "一个六轴齿轮箱可使装置变得更为紧凑",
   "createvoidway.ponder.lshaped_gearbox.header": "使用L形齿轮箱传递旋转力",
   "createvoidway.ponder.lshaped_gearbox.text_1": "这种改变方向的方式显得相当笨重",
   "createvoidway.ponder.lshaped_gearbox.text_2": "使用齿轮箱将比上种设计更为紧凑，但另外两个方向的接口毫无用处",

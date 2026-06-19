@@ -16,7 +16,7 @@ REPLACEMENTS = [
     ("createutilities:void_battery", "createvoidway:void_battery_output"),
 ]
 
-CU_FILES = ["gearcube", "lshaped_gearbox", "void_battery", "void_chest", "void_motor", "void_tank"]
+CU_FILES = ["lshaped_gearbox", "void_battery", "void_chest", "void_motor", "void_tank"]
 
 
 def replace_nbt_strings(data: bytes, old: str, new: str) -> tuple[bytes, int]:
@@ -50,7 +50,7 @@ def verify_all() -> None:
         if b"createutilities:" in raw:
             raise SystemExit(f"FAIL {fn}: still has createutilities")
         # Files with only palette (no custom BE tags) must parse
-        if fn in ("gearcube.nbt", "lshaped_gearbox.nbt", "void_motor_io.nbt", "void_node_terminal.nbt",
+        if fn in ("lshaped_gearbox.nbt", "void_motor_io.nbt", "void_node_terminal.nbt",
                   "void_portal.nbt", "void_teleport.nbt", "void_transfer_fluid.nbt"):
             try:
                 nbtlib.load(path)

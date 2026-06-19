@@ -49,7 +49,6 @@ public class RWCreativeTabs {
 						output.accept(RWBlocks.VOID_NODE_TERMINAL);
 						output.accept(RWItems.POLISHED_AMETHYST);
 						output.accept(RWItems.GRAVITON_TUBE);
-						output.accept(RWBlocks.GEARCUBE);
 						output.accept(RWBlocks.LSHAPED_GEARBOX);
 						output.accept(RWBlocks.AMETHYST_TILES);
 						output.accept(RWBlocks.SMALL_AMETHYST_TILES);
