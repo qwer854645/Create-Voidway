@@ -18,25 +18,25 @@ import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestOutputRenderer;
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestOutputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestVisual;
 import com.xeli.createvoidway.blocks.voidtypes.motor.DirectedVoidMotorRenderer;
-import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorInputRenderer;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorInputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorOutputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankInputRenderer;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankInputTileEntity;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankOutputRenderer;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankOutputTileEntity;
-import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankVisual;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportLinkRenderer;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportLinkTileEntity;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportPadRenderer;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportPadTileEntity;
-import com.xeli.createvoidway.blocks.teleport.VoidTeleportPadVisual;
 import com.xeli.createvoidway.blocks.portal.VoidPortalConnectorRenderer;
 import com.xeli.createvoidway.blocks.portal.VoidPortalConnectorTileEntity;
 import com.xeli.createvoidway.blocks.portal.VoidPortalFluidTileEntity;
 import com.xeli.createvoidway.blocks.portal.VoidPortalStressRenderer;
 import com.xeli.createvoidway.blocks.portal.VoidPortalStressTileEntity;
 import com.xeli.createvoidway.blocks.portal.VoidPortalStressVisual;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalRenderer;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalTileEntity;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalVisual;
 
 import static com.xeli.createvoidway.VoidwayMod.REGISTRATE;
 
@@ -53,7 +53,7 @@ public class RWTileEntities {
 			.blockEntity("void_motor_input", VoidMotorInputTileEntity::new)
 			.visual(() -> OrientedRotatingVisual.of(AllPartialModels.SHAFT_HALF), true)
 			.validBlocks(RWBlocks.VOID_MOTOR_INPUT)
-			.renderer(() -> VoidMotorInputRenderer::new)
+			.renderer(() -> DirectedVoidMotorRenderer::new)
 			.register();
 
 	public static final BlockEntityEntry<VoidChestOutputTileEntity> VOID_CHEST_OUTPUT = REGISTRATE
@@ -72,14 +72,12 @@ public class RWTileEntities {
 
 	public static final BlockEntityEntry<VoidTankOutputTileEntity> VOID_TANK_OUTPUT = REGISTRATE
 			.blockEntity("void_tank_output", VoidTankOutputTileEntity::new)
-			.visual(() -> VoidTankVisual::new, true)
 			.validBlocks(RWBlocks.VOID_TANK_OUTPUT)
 			.renderer(() -> VoidTankOutputRenderer::new)
 			.register();
 
 	public static final BlockEntityEntry<VoidTankInputTileEntity> VOID_TANK_INPUT = REGISTRATE
 			.blockEntity("void_tank_input", VoidTankInputTileEntity::new)
-			.visual(() -> VoidTankVisual::new, true)
 			.validBlocks(RWBlocks.VOID_TANK_INPUT)
 			.renderer(() -> VoidTankInputRenderer::new)
 			.register();
@@ -106,7 +104,6 @@ public class RWTileEntities {
 
 	public static final BlockEntityEntry<VoidTeleportPadTileEntity> VOID_TELEPORT_PAD = REGISTRATE
 			.blockEntity("void_teleport_pad", VoidTeleportPadTileEntity::new)
-			.visual(() -> VoidTeleportPadVisual::new, true)
 			.validBlocks(RWBlocks.VOID_TELEPORT_PAD)
 			.renderer(() -> VoidTeleportPadRenderer::new)
 			.register();
@@ -127,6 +124,13 @@ public class RWTileEntities {
 			.blockEntity("void_portal_connector", VoidPortalConnectorTileEntity::new)
 			.validBlocks(RWBlocks.VOID_PORTAL_CONNECTOR)
 			.renderer(() -> VoidPortalConnectorRenderer::new)
+			.register();
+
+	public static final BlockEntityEntry<VoidNodeTerminalTileEntity> VOID_NODE_TERMINAL = REGISTRATE
+			.blockEntity("void_node_terminal", VoidNodeTerminalTileEntity::new)
+			.visual(() -> VoidNodeTerminalVisual::new, true)
+			.validBlocks(RWBlocks.VOID_NODE_TERMINAL)
+			.renderer(() -> VoidNodeTerminalRenderer::new)
 			.register();
 
 	public static final BlockEntityEntry<GearboxBlockEntity> GEARCUBE = REGISTRATE

@@ -51,7 +51,7 @@ public class GearboxScenes {
 		scene.overlay().showText(50)
 				.pointAt(bottomGBVec)
 				.placeNearTarget()
-				.text("Relaying rotation in all directions can get bulky quickly");
+				.text(PonderSceneHelper.textKey("gearcube", 1));
 		scene.idle(60);
 
 		scene.world().hideSection(util.select().position(2, 2, 2), Direction.DOWN);
@@ -94,12 +94,12 @@ public class GearboxScenes {
 		scene.world().showSection(util.select().position(shaft3Pos), Direction.DOWN);
 		scene.idle(20);
 
-		scene.overlay().showText(60)
+		scene.overlay().showText(50)
 				.colored(PonderPalette.GREEN)
 				.pointAt(util.vector().topOf(3, 2, 3))
 				.placeNearTarget()
 				.attachKeyFrame()
-				.text("A 6-Axis Gearcube is the more compact equivalent of this setup");
+				.text(PonderSceneHelper.textKey("gearcube", 2));
 		scene.idle(70);
 
 	}
@@ -134,7 +134,7 @@ public class GearboxScenes {
 		scene.overlay().showText(50)
 				.pointAt(util.vector().blockSurface(shaftPos, Direction.WEST))
 				.placeNearTarget()
-				.text("Changing directions can get bulky quickly");
+				.text(PonderSceneHelper.textKey("lshaped_gearbox", 1));
 
 		scene.idle(50);
 		scene.world().hideSection(cog1.add(cog2), Direction.UP);
@@ -154,7 +154,7 @@ public class GearboxScenes {
 				.colored(PonderPalette.GREEN)
 				.pointAt(util.vector().blockSurface(gearboxPos, Direction.NORTH))
 				.placeNearTarget()
-				.text("A more compact alternative to this setup is using a Gearbox, but two shafts go unused");
+				.text(PonderSceneHelper.textKey("lshaped_gearbox", 2));
 		scene.idle(80);
 
 		scene.world().hideSection(gearbox, Direction.UP);
@@ -172,7 +172,7 @@ public class GearboxScenes {
 				.colored(PonderPalette.GREEN)
 				.pointAt(util.vector().blockSurface(gearboxPos, Direction.NORTH))
 				.placeNearTarget()
-				.text("With an L-Shaped Gearbox you can make this in a cleaner and cheaper way");
+				.text(PonderSceneHelper.textKey("lshaped_gearbox", 3));
 		scene.idle(80);
 		scene.addKeyframe();
 
@@ -196,7 +196,7 @@ public class GearboxScenes {
 			scene.world().modifyBlock(gearboxPos, s -> s.cycle(LShapedGearboxBlock.FACING_2), false);
 			if (i == 1) {
 				scene.overlay().showText(50)
-						.text("By Right-clicking it with a Wrench, you can change the orientation of the secondary axis")
+						.text(PonderSceneHelper.textKey("lshaped_gearbox", 4))
 						.pointAt(lGearboxVec);
 			}
 		}

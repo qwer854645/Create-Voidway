@@ -9,7 +9,9 @@ import dev.engine_room.flywheel.api.instance.Instancer;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import dev.engine_room.flywheel.lib.instance.AbstractInstance;
 import dev.engine_room.flywheel.lib.instance.FlatLit;
+import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import dev.engine_room.flywheel.lib.model.Models;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -42,6 +44,14 @@ public class VoidPortalStressVisual extends KineticBlockEntityVisual<VoidPortalS
 		}
 	}
 
+	private Vector3f getShaftPosition(Direction direction) {
+		BlockPos visualPos = getVisualPosition();
+		float offset = VoidShaftBuffers.PORTAL_STRESS_SHAFT_OUTWARD_VOXELS * VoidShaftBuffers.VOXEL;
+		return new Vector3f(visualPos.getX() + direction.getStepX() * offset,
+				visualPos.getY() + direction.getStepY() * offset,
+				visualPos.getZ() + direction.getStepZ() * offset);
+	}
+
 	private Direction[] getShaftFaces() {
 		Direction front = blockEntity.getBlockState().getValue(VoidPortalStressBlock.FACING);
 		return new Direction[] { front, front.getOpposite() };
@@ -56,10 +66,6 @@ public class VoidPortalStressVisual extends KineticBlockEntityVisual<VoidPortalS
 				speed *= -1;
 		}
 		return speed;
-	}
-
-	protected Vector3f getShaftPosition(Direction face) {
-		return VoidPortalStressShaftGeometry.flywheelPosition(getVisualPosition(), face);
 	}
 
 	protected void updateSourceFacing() {

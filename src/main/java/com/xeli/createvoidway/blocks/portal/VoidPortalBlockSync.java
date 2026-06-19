@@ -16,12 +16,9 @@ public final class VoidPortalBlockSync {
 	public static void fill(ServerLevel level, VoidPortalShape shape) {
 		BlockState portalState = RWBlocks.VOID_PORTAL.getDefaultState()
 				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_AXIS,
-						shape.walkAxis());
+						shape.portalBlockAxis());
 		for (BlockPos pos : shape.iterateInteriorPositions()) {
-			BlockState current = level.getBlockState(pos);
-			if (current.is(RWBlocks.VOID_PORTAL.get()))
-				continue;
-			if (VoidPortalShape.isReplaceableByPortal(level, pos))
+			if (VoidPortalShape.isReplaceableByPortal(level, pos) || level.getBlockState(pos).is(RWBlocks.VOID_PORTAL.get()))
 				level.setBlock(pos, portalState, Block.UPDATE_ALL);
 		}
 	}

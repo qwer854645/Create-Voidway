@@ -37,6 +37,8 @@ public class RWPonders {
 		BLOCK.addStoryBoard(RWBlocks.VOID_TELEPORT_LINK, "void_teleport", TeleportScenes::voidTeleport);
 		BLOCK.addStoryBoard(RWBlocks.VOID_TELEPORT_PAD, "void_teleport", TeleportScenes::voidTeleport);
 
+		BLOCK.addStoryBoard(RWBlocks.VOID_NODE_TERMINAL, "void_node_terminal", TerminalScenes::voidNodeTerminal);
+
 		BLOCK.addStoryBoard(RWBlocks.VOID_PORTAL_CONNECTOR, "void_portal", PortalScenes::voidPortal);
 		BLOCK.addStoryBoard(RWBlocks.VOID_PORTAL_FRAME, "void_portal", PortalScenes::voidPortal);
 		BLOCK.addStoryBoard(RWBlocks.VOID_PORTAL_FLUID, "void_portal", PortalScenes::voidPortal);

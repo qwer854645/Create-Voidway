@@ -102,6 +102,24 @@ public final class VoidwayConfig {
 			.comment("Internal void transfer fluid tank capacity (mB) for void teleport pads.")
 			.defineInRange("voidTeleportFluidCapacity", 1000, 1, 1000000);
 
+	private static final ModConfigSpec.IntValue VOID_NODE_TERMINAL_STRESS = BUILDER
+			.comment("Base multiplier for void node terminal stress demand.")
+			.comment("Demand = this value x terminal count x dimension count x farthest same-dimension terminal distance.")
+			.comment("If the current dimension has only one terminal, the distance factor is treated as 1.")
+			.defineInRange("voidNodeTerminalStressDemand", 64, 0, 1000000);
+
+	private static final ModConfigSpec.IntValue VOID_NODE_TERMINAL_STRESS_MAX = BUILDER
+			.comment("Maximum stress demand (SU) for a void node terminal after dynamic scaling.")
+			.defineInRange("voidNodeTerminalStressMax", 16384, 0, 1000000);
+
+	private static final ModConfigSpec.IntValue VOID_NODE_TERMINAL_TRANSFER_FLUID_DRAIN_MB = BUILDER
+			.comment("Void transfer fluid drained per tick while a void node terminal is operating.")
+			.defineInRange("voidNodeTerminalTransferFluidDrainMbPerTick", 1, 0, 10000);
+
+	private static final ModConfigSpec.IntValue VOID_NODE_TERMINAL_TELEPORT_FLUID_COST_MB = BUILDER
+			.comment("Void transfer fluid consumed when teleporting through a void node terminal.")
+			.defineInRange("voidNodeTerminalTeleportFluidCostMb", 500, 0, 100000);
+
 	public static final ModConfigSpec SPEC = BUILDER.build();
 
 	private static int voidMotorInputLocalStressPercent = VOID_MOTOR_INPUT_LOCAL_STRESS_PERCENT.getDefault();
@@ -125,6 +143,10 @@ public final class VoidwayConfig {
 	private static int voidTeleportStressMin = VOID_TELEPORT_STRESS_MIN.getDefault();
 	private static int voidTeleportStressMax = VOID_TELEPORT_STRESS_MAX.getDefault();
 	private static int voidTeleportFluidCapacity = VOID_TELEPORT_FLUID_CAPACITY.getDefault();
+	private static int voidNodeTerminalStressDemand = VOID_NODE_TERMINAL_STRESS.getDefault();
+	private static int voidNodeTerminalStressMax = VOID_NODE_TERMINAL_STRESS_MAX.getDefault();
+	private static int voidNodeTerminalTransferFluidDrainMbPerTick = VOID_NODE_TERMINAL_TRANSFER_FLUID_DRAIN_MB.getDefault();
+	private static int voidNodeTerminalTeleportFluidCostMb = VOID_NODE_TERMINAL_TELEPORT_FLUID_COST_MB.getDefault();
 
 	private VoidwayConfig() {}
 
@@ -224,6 +246,22 @@ public final class VoidwayConfig {
 		return voidTeleportFluidCapacity;
 	}
 
+	public static int getVoidNodeTerminalStressMultiplier() {
+		return voidNodeTerminalStressDemand;
+	}
+
+	public static int getVoidNodeTerminalStressMax() {
+		return voidNodeTerminalStressMax;
+	}
+
+	public static int getVoidNodeTerminalTransferFluidDrainMbPerTick() {
+		return voidNodeTerminalTransferFluidDrainMbPerTick;
+	}
+
+	public static int getVoidNodeTerminalTeleportFluidCostMb() {
+		return voidNodeTerminalTeleportFluidCostMb;
+	}
+
 	private static void load() {
 		voidMotorInputLocalStressPercent = VOID_MOTOR_INPUT_LOCAL_STRESS_PERCENT.get();
 		voidMotorInputTransferFluidDrainPercent = VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_PERCENT.get();
@@ -246,6 +284,10 @@ public final class VoidwayConfig {
 		voidTeleportStressMin = VOID_TELEPORT_STRESS_MIN.get();
 		voidTeleportStressMax = VOID_TELEPORT_STRESS_MAX.get();
 		voidTeleportFluidCapacity = VOID_TELEPORT_FLUID_CAPACITY.get();
+		voidNodeTerminalStressDemand = VOID_NODE_TERMINAL_STRESS.get();
+		voidNodeTerminalStressMax = VOID_NODE_TERMINAL_STRESS_MAX.get();
+		voidNodeTerminalTransferFluidDrainMbPerTick = VOID_NODE_TERMINAL_TRANSFER_FLUID_DRAIN_MB.get();
+		voidNodeTerminalTeleportFluidCostMb = VOID_NODE_TERMINAL_TELEPORT_FLUID_COST_MB.get();
 	}
 
 	@SubscribeEvent

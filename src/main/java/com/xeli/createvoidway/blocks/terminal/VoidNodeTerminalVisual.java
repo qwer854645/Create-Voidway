@@ -1,4 +1,4 @@
-package com.xeli.createvoidway.blocks.voidtypes.tank;
+package com.xeli.createvoidway.blocks.terminal;
 
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityVisual;
@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.render.AllInstanceTypes;
 import dev.engine_room.flywheel.api.instance.Instance;
 import dev.engine_room.flywheel.api.instance.Instancer;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
+import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import dev.engine_room.flywheel.lib.model.Models;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,15 +16,15 @@ import org.joml.Vector3f;
 
 import java.util.function.Consumer;
 
-public class VoidTankVisual extends KineticBlockEntityVisual<AbstractVoidTankTileEntity> {
+public class VoidNodeTerminalVisual extends KineticBlockEntityVisual<VoidNodeTerminalTileEntity> {
 
 	private static final Direction SHAFT_FACE = Direction.DOWN;
-	private static final float BOTTOM_SHAFT_Y_OFFSET = -4.5f / 16f;
 
 	protected RotatingInstance shaft;
+	@Nullable
 	protected Direction sourceFacing;
 
-	public VoidTankVisual(VisualizationContext context, AbstractVoidTankTileEntity blockEntity, float partialTick) {
+	public VoidNodeTerminalVisual(VisualizationContext context, VoidNodeTerminalTileEntity blockEntity, float partialTick) {
 		super(context, blockEntity, partialTick);
 		updateSourceFacing();
 		Instancer<RotatingInstance> instancer = instancerProvider()
@@ -33,6 +34,12 @@ public class VoidTankVisual extends KineticBlockEntityVisual<AbstractVoidTankTil
 				.setPosition(getShaftPosition())
 				.rotateToFace(Direction.SOUTH, SHAFT_FACE)
 				.setChanged();
+	}
+
+	protected Vector3f getShaftPosition() {
+		BlockPos visualPos = getVisualPosition();
+		return new Vector3f(visualPos.getX(), visualPos.getY() + VoidShaftBuffers.padTerminalShaftDownOffset(),
+				visualPos.getZ());
 	}
 
 	private float getSpeed() {
@@ -46,11 +53,6 @@ public class VoidTankVisual extends KineticBlockEntityVisual<AbstractVoidTankTil
 		return speed;
 	}
 
-	protected Vector3f getShaftPosition() {
-		BlockPos visualPos = getVisualPosition();
-		return new Vector3f(visualPos.getX(), visualPos.getY() + BOTTOM_SHAFT_Y_OFFSET, visualPos.getZ());
-	}
-
 	protected void updateSourceFacing() {
 		if (blockEntity.hasSource()) {
 			BlockPos source = blockEntity.source.subtract(pos);
@@ -62,9 +64,7 @@ public class VoidTankVisual extends KineticBlockEntityVisual<AbstractVoidTankTil
 	@Override
 	public void update(float partialTick) {
 		updateSourceFacing();
-		shaft.setup(blockEntity, Direction.Axis.Y, getSpeed())
-				.setPosition(getShaftPosition())
-				.setChanged();
+		shaft.setup(blockEntity, Direction.Axis.Y, getSpeed()).setChanged();
 	}
 
 	@Override

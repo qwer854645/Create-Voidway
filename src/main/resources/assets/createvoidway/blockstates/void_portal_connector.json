@@ -1,8 +1,8 @@
 {
   "variants": {
-    "facing=north": { "model": "createvoidway:block/void_portal_connector/block" },
-    "facing=south": { "model": "createvoidway:block/void_portal_connector/block", "y": 180 },
-    "facing=west": { "model": "createvoidway:block/void_portal_connector/block", "y": 270 },
-    "facing=east": { "model": "createvoidway:block/void_portal_connector/block", "y": 90 }
+    "facing=north": { "model": "createvoidway:block/void_portal_connector/block", "y": 180 },
+    "facing=south": { "model": "createvoidway:block/void_portal_connector/block" },
+    "facing=west": { "model": "createvoidway:block/void_portal_connector/block", "y": 90 },
+    "facing=east": { "model": "createvoidway:block/void_portal_connector/block", "y": 270 }
   }
 }

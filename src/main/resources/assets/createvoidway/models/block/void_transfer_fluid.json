@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "createvoidway:block/void_motor"
+    "particle": "createvoidway:fluid/void_transfer_fluid_still"
   }
 }

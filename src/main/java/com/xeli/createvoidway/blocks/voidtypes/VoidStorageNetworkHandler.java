@@ -9,6 +9,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class VoidStorageNetworkHandler {
 
@@ -96,6 +97,17 @@ public class VoidStorageNetworkHandler {
 			return false;
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		return blockEntity != null && !blockEntity.isRemoved();
+	}
+
+	public void collectPositions(NetworkKey key, BiConsumer<ResourceLocation, BlockPos> consumer) {
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
+			if (positions == null)
+			 continue;
+			ResourceLocation dimension = dimensionEntry.getKey();
+			for (BlockPos pos : positions)
+				consumer.accept(dimension, pos);
+		}
 	}
 
 }

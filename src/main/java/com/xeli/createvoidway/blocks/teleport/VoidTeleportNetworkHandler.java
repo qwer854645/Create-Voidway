@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class VoidTeleportNetworkHandler {
 
@@ -107,10 +108,15 @@ public class VoidTeleportNetworkHandler {
 		BlockPos padPos = linkTe.getBoundPadPos();
 		Set<BlockPos> network = getNetworkOf(world, link);
 
-		if (padPos != null && linkTe.isMutuallyBound() && hasFrequencyConfigured(link))
-			network.add(padPos);
-		else if (padPos != null)
+		network.remove(linkPos);
+		if (padPos != null)
 			network.remove(padPos);
+
+		if (hasFrequencyConfigured(link)) {
+			network.add(linkPos);
+			if (padPos != null && linkTe.isMutuallyBound())
+				network.add(padPos);
+		}
 
 		updateNetwork(world, link.getNetworkKey());
 	}
@@ -389,6 +395,17 @@ public class VoidTeleportNetworkHandler {
 			return false;
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		return blockEntity instanceof VoidTeleportPadTileEntity && !blockEntity.isRemoved();
+	}
+
+	public void collectPositions(NetworkKey key, BiConsumer<ResourceLocation, BlockPos> consumer) {
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
+			if (positions == null)
+			 continue;
+			ResourceLocation dimension = dimensionEntry.getKey();
+			for (BlockPos pos : positions)
+				consumer.accept(dimension, pos);
+		}
 	}
 
 }

@@ -6,6 +6,7 @@ import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.xeli.createvoidway.blocks.RWPartialsModels;
 import com.xeli.createvoidway.blocks.VoidShaftBuffers;
+import com.xeli.createvoidway.blocks.voidtypes.VoidPortalOverlay;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import net.createmod.catnip.animation.AnimationTickHolder;
@@ -93,17 +94,17 @@ public class AbstractVoidChestRenderer<T extends AbstractVoidChestTileEntity> ex
 
 	@Override
 	public boolean shouldRenderFrame(T te, Direction direction) {
-		return direction == Direction.UP && !te.isClosed();
+		return VoidPortalOverlay.isUpFace(direction) && !te.isClosed();
 	}
 
 	@Override
 	public float getFrameWidth() {
-		return .625F;
+		return VoidPortalOverlay.CHEST_FRAME_WIDTH;
 	}
 
 	@Override
 	public float getFrameOffset(Direction direction) {
-		return .626F;
+		return VoidPortalOverlay.yOffset(direction, VoidPortalOverlay.CHEST_FRAME_Y);
 	}
 
 }

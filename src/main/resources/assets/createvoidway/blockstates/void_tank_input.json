@@ -1,12 +1,10 @@
 {
   "variants": {
     "closed=false": {
-      "model": "createvoidway:block/void_tank/block_window",
-      "y": 180
+      "model": "createvoidway:block/void_tank/block_window"
     },
     "closed=true": {
-      "model": "createvoidway:block/void_tank/block_plain",
-      "y": 180
+      "model": "createvoidway:block/void_tank/block_plain"
     }
   }
 }

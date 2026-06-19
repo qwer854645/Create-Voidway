@@ -4,8 +4,6 @@ import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.xeli.createvoidway.config.VoidwayConfig;
 import com.xeli.createvoidway.fluids.RWFluids;
 import com.xeli.createvoidway.fluids.VoidTransferFluidTank;
-import com.xeli.createvoidway.voidlink.VoidLinkSlot;
-import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -16,7 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.List;
 
@@ -39,15 +36,6 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 
 	public VoidMotorInputTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
-	}
-
-	@Override
-	protected void createLink() {
-		Triple<VoidLinkSlot, VoidLinkSlot, VoidLinkSlot> slots = VoidLinkSlot.makeSlots(
-				index -> new VoidLinkSlot(index,
-						VoidMotorInputBlock::getLinkSlotFace,
-						VecHelper.voxelSpace(5.5F, 10.5F, 16.001F)));
-		link = new VoidMotorLinkBehaviour(this, slots);
 	}
 
 	@Override

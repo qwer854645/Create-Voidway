@@ -1,5 +1,6 @@
 {
   "render_type": "minecraft:translucent",
+  "ambientocclusion": false,
   "textures": {
     "particle": "minecraft:block/nether_portal",
     "portal": "minecraft:block/nether_portal"
@@ -9,8 +10,8 @@
       "from": [6, 0, 0],
       "to": [10, 16, 16],
       "faces": {
-        "north": { "uv": [0, 0, 16, 16], "texture": "#portal" },
-        "south": { "uv": [0, 0, 16, 16], "texture": "#portal" }
+        "east": { "uv": [0, 0, 16, 16], "texture": "#portal" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#portal" }
       }
     }
   ]

@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "type": "single",
+      "resource": "createvoidway:fluid/void_transfer_fluid_still"
+    },
+    {
+      "type": "single",
+      "resource": "createvoidway:fluid/void_transfer_fluid_flow"
+    }
+  ]
+}

@@ -24,6 +24,8 @@ import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankInputBlock;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTankOutputBlock;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportLinkBlock;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportPadBlock;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalBlock;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalTopBlock;
 import com.xeli.createvoidway.blocks.portal.VoidPortalBlock;
 import com.xeli.createvoidway.blocks.portal.VoidPortalConnectorBlock;
 import com.xeli.createvoidway.blocks.portal.VoidPortalFluidBlock;
@@ -261,6 +263,29 @@ public class RWBlocks {
 			.properties(p -> p.noLootTable())
 			.properties(p -> p.lightLevel(state -> 11))
 			.properties(p -> p.strength(-1.0F, 3600000.0F))
+			.addLayer(() -> RenderType::translucent)
+			.register();
+
+	public static final BlockEntry<VoidNodeTerminalBlock> VOID_NODE_TERMINAL = REGISTRATE.block("void_node_terminal",
+			VoidNodeTerminalBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.transform(pickaxeOnly())
+			.item()
+			.properties(p -> p.rarity(Rarity.EPIC))
+			.transform(customItemModel())
+			.register();
+
+	public static final BlockEntry<VoidNodeTerminalTopBlock> VOID_NODE_TERMINAL_TOP = REGISTRATE
+			.block("void_node_terminal_top", VoidNodeTerminalTopBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(BlockBehaviour.Properties::noOcclusion)
+			.properties(p -> p.mapColor(MapColor.COLOR_BLACK))
+			.properties(p -> p.strength(30F, 600.0F))
+			.properties(p -> p.noLootTable())
+			.transform(pickaxeOnly())
 			.register();
 
 	public static final BlockEntry<GearcubeBlock> GEARCUBE = REGISTRATE.block("gearcube", GearcubeBlock::new)

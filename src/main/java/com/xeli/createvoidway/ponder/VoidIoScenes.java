@@ -21,21 +21,18 @@ public class VoidIoScenes {
 		scene.world().showSection(util.select().position(outputPos), Direction.DOWN);
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("Void Motor Inputs inject stress from a rotating shaft into a shared void channel")
-				.pointAt(util.vector().blockSurface(inputPos, Direction.WEST));
+		PonderSceneHelper.showText(scene, "void_motor_io", 1,
+				util.vector().blockSurface(inputPos, Direction.WEST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(60)
-				.text("Void Motor Outputs act as adjustable stress sources for the channel they share a Frequency with")
-				.pointAt(util.vector().blockSurface(outputPos, Direction.EAST));
+		PonderSceneHelper.showText(scene, "void_motor_io", 2,
+				util.vector().blockSurface(outputPos, Direction.EAST), 60);
 		scene.idle(70);
 
 		scene.world().setKineticSpeed(util.select().position(inputPos), 32);
 		scene.world().setKineticSpeed(util.select().position(outputPos), 32);
-		scene.overlay().showText(50)
-				.text("Matching Frequency and Owner pairs an Input with its Outputs across any distance")
-				.pointAt(util.vector().centerOf(outputPos));
+		PonderSceneHelper.showText(scene, "void_motor_io", 3,
+				util.vector().centerOf(outputPos), 50);
 		scene.idle(60);
 	}
 
@@ -52,19 +49,16 @@ public class VoidIoScenes {
 		scene.world().showSection(util.select().position(outputPos), Direction.DOWN);
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("Void Chest Inputs push items into a shared void channel when supplied with stress")
-				.pointAt(util.vector().blockSurface(inputPos, Direction.WEST));
+		PonderSceneHelper.showText(scene, "void_chest_io", 1,
+				util.vector().blockSurface(inputPos, Direction.WEST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(60)
-				.text("Void Chest Outputs pull items from that channel onto adjacent logistics")
-				.pointAt(util.vector().blockSurface(outputPos, Direction.EAST));
+		PonderSceneHelper.showText(scene, "void_chest_io", 2,
+				util.vector().blockSurface(outputPos, Direction.EAST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(50)
-				.text("Both sides need a rotating shaft below and Void Transfer Fluid piped into their sides")
-				.pointAt(util.vector().centerOf(inputPos));
+		PonderSceneHelper.showText(scene, "void_chest_io", 3,
+				util.vector().centerOf(inputPos), 50);
 		scene.idle(60);
 	}
 
@@ -81,19 +75,16 @@ public class VoidIoScenes {
 		scene.world().showSection(util.select().position(outputPos), Direction.DOWN);
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("Void Tank Inputs store fluids from adjacent pipes into a shared void channel")
-				.pointAt(util.vector().blockSurface(inputPos, Direction.WEST));
+		PonderSceneHelper.showText(scene, "void_tank_io", 1,
+				util.vector().blockSurface(inputPos, Direction.WEST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(60)
-				.text("Void Tank Outputs release stored fluids from the channel to nearby pipes")
-				.pointAt(util.vector().blockSurface(outputPos, Direction.EAST));
+		PonderSceneHelper.showText(scene, "void_tank_io", 2,
+				util.vector().blockSurface(outputPos, Direction.EAST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(50)
-				.text("A rotating shaft below each block is required to drive the transfer")
-				.pointAt(util.vector().centerOf(outputPos));
+		PonderSceneHelper.showText(scene, "void_tank_io", 3,
+				util.vector().centerOf(outputPos), 50);
 		scene.idle(60);
 	}
 
@@ -110,19 +101,16 @@ public class VoidIoScenes {
 		scene.world().showSection(util.select().position(outputPos), Direction.DOWN);
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("Void Battery Inputs deposit FE from adjacent sources into a shared void channel")
-				.pointAt(util.vector().blockSurface(inputPos, Direction.WEST));
+		PonderSceneHelper.showText(scene, "void_battery_io", 1,
+				util.vector().blockSurface(inputPos, Direction.WEST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(60)
-				.text("Void Battery Outputs supply FE from the channel to adjacent consumers")
-				.pointAt(util.vector().blockSurface(outputPos, Direction.EAST));
+		PonderSceneHelper.showText(scene, "void_battery_io", 2,
+				util.vector().blockSurface(outputPos, Direction.EAST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(50)
-				.text("Like other void devices, both sides require stress and Void Transfer Fluid to operate")
-				.pointAt(util.vector().centerOf(inputPos));
+		PonderSceneHelper.showText(scene, "void_battery_io", 3,
+				util.vector().centerOf(inputPos), 50);
 		scene.idle(60);
 	}
 

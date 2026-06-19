@@ -13,6 +13,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.xeli.createvoidway.VoidwayMod;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalMultiblock;
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
 import net.createmod.catnip.math.VecHelper;
 import net.createmod.catnip.outliner.Outliner;
@@ -47,7 +48,7 @@ public class VoidLinkRenderer {
 			return;
 
 		ClientLevel world = mc.level;
-		BlockPos pos = result.getBlockPos();
+		BlockPos pos = VoidNodeTerminalMultiblock.resolveBehaviourPos(world, result.getBlockPos());
 
 		VoidLinkBehaviour behaviour = BlockEntityBehaviour.get(world, pos, VoidLinkBehaviour.TYPE);
 		if (behaviour == null)

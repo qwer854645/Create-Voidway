@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "createvoidway:block/void_node_terminal/bottom",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "createvoidway:block/void_node_terminal/bottom",
+      "y": 270
+    },
+    "facing=south": {
+      "model": "createvoidway:block/void_node_terminal/bottom"
+    },
+    "facing=west": {
+      "model": "createvoidway:block/void_node_terminal/bottom",
+      "y": 90
+    }
+  }
+}

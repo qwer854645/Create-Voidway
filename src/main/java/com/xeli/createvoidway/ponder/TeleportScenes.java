@@ -38,16 +38,12 @@ public class TeleportScenes {
 		scene.world().showSection(link, Direction.WEST);
 		scene.idle(10);
 
-		Vec3 padVec = util.vector().blockSurface(padPos, Direction.NORTH);
-		scene.overlay().showText(60)
-				.text("Void Teleport Pads instantly move every entity standing on them to a paired pad")
-				.pointAt(padVec);
+		PonderSceneHelper.showText(scene, "void_teleport", 1,
+				util.vector().blockSurface(padPos, Direction.NORTH), 60);
 		scene.idle(70);
 
-		Vec3 linkVec = util.vector().blockSurface(linkPos, Direction.NORTH);
-		scene.overlay().showText(60)
-				.text("Place a Void Teleport Link coplanar and adjacent to configure the pad's Frequency")
-				.pointAt(linkVec);
+		PonderSceneHelper.showText(scene, "void_teleport", 2,
+				util.vector().blockSurface(linkPos, Direction.NORTH), 60);
 		scene.idle(70);
 
 		configureFrequency(scene, util, link, linkPos, Direction.NORTH);
@@ -58,9 +54,7 @@ public class TeleportScenes {
 				.rightClick()
 				.withItem(AllItems.WRENCH.asStack());
 		scene.idle(10);
-		scene.overlay().showText(50)
-				.text("Wrench the Link, then wrench the adjacent Pad to bind them together")
-				.pointAt(bindLinkVec);
+		PonderSceneHelper.showText(scene, "void_teleport", 4, bindLinkVec, 50);
 		scene.idle(60);
 
 		Vec3 bindPadVec = util.vector().blockSurface(padPos, Direction.UP);
@@ -71,34 +65,28 @@ public class TeleportScenes {
 
 		scene.world().showSection(partner, Direction.DOWN);
 		scene.idle(10);
-		scene.overlay().showText(60)
-				.text("Build a second Link + Pad pair with the same Frequency — only one partner pad is allowed per channel")
-				.pointAt(util.vector().blockSurface(partnerPadPos, Direction.NORTH));
+		PonderSceneHelper.showText(scene, "void_teleport", 5,
+				util.vector().blockSurface(partnerPadPos, Direction.NORTH), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(60)
-				.text("Supply a rotating shaft below each pad and keep Void Transfer Fluid available to enable teleporting")
-				.pointAt(util.vector().blockSurface(shaftPos, Direction.UP));
+		PonderSceneHelper.showText(scene, "void_teleport", 6,
+				util.vector().blockSurface(shaftPos, Direction.UP), 60);
 		scene.idle(70);
 	}
 
 	private static void configureFrequency(CreateSceneBuilder scene, SceneBuildingUtil util, Selection link,
 			BlockPos linkPos, Direction face) {
 		Vec3 linkVec = util.vector().blockSurface(linkPos, face);
-		float shift = -.0475f;
-		float yOffset = -.1875f;
+		float shift = PonderSceneHelper.southHorizontalShift();
+		float yOffset = PonderSceneHelper.southHorizontalYOffset();
 
-		Vec3 backFreq = offsetFirstFrequency(linkVec, face, shift, yOffset);
-		Vec3 frontFreq = offsetLastFrequency(linkVec, face, shift, yOffset);
+		Vec3 backFreq = PonderSceneHelper.firstFrequency(linkVec, face, shift, yOffset);
+		Vec3 frontFreq = PonderSceneHelper.lastFrequency(linkVec, face, shift, yOffset);
 
-		scene.overlay().showFilterSlotInput(backFreq, face, 80);
-		scene.overlay().showFilterSlotInput(frontFreq, face, 80);
+		PonderSceneHelper.showFrequencySlots(scene, backFreq, frontFreq, face, 80);
 		scene.idle(10);
 
-		scene.overlay().showText(50)
-				.text("Place items in the Link's two upper slots to define its Frequency")
-				.placeNearTarget()
-				.pointAt(frontFreq);
+		PonderSceneHelper.showTextNear(scene, "void_teleport", 3, frontFreq, 50);
 		scene.idle(60);
 
 		ItemStack iron = new ItemStack(Items.IRON_INGOT);
@@ -114,26 +102,6 @@ public class TeleportScenes {
 		scene.world().modifyBlockEntityNBT(link, VoidTeleportLinkTileEntity.class,
 				nbt -> nbt.put("FrequencyFirst", sapling.save(Minecraft.getInstance().level.registryAccess())));
 		scene.idle(20);
-	}
-
-	private static Vec3 offsetFirstFrequency(Vec3 faceVec, Direction face, float shift, float yOffset) {
-		return switch (face) {
-			case NORTH -> faceVec.add(.15625f, .15625f + yOffset, -shift);
-			case EAST -> faceVec.add(shift, .15625f + yOffset, .15625f);
-			case SOUTH -> faceVec.add(-.15625f, .15625f + yOffset, shift);
-			case WEST -> faceVec.add(-shift, .15625f + yOffset, -.15625f);
-			default -> faceVec;
-		};
-	}
-
-	private static Vec3 offsetLastFrequency(Vec3 faceVec, Direction face, float shift, float yOffset) {
-		return switch (face) {
-			case NORTH -> faceVec.add(-.15625f, .15625f + yOffset, -shift);
-			case EAST -> faceVec.add(shift, .15625f + yOffset, -.15625f);
-			case SOUTH -> faceVec.add(.15625f, .15625f + yOffset, shift);
-			case WEST -> faceVec.add(-shift, .15625f + yOffset, .15625f);
-			default -> faceVec;
-		};
 	}
 
 }

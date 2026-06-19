@@ -47,6 +47,11 @@ public class VoidPortalConnectorBlock extends HorizontalDirectionalBlock impleme
 		return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
 	}
 
+	/** Face toward the player; matches south-baked slot models with fixed blockstate rotation. */
+	public static Direction getLinkSlotFace(BlockState state) {
+		return state.getValue(FACING);
+	}
+
 	@Override
 	public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		if (!level.isClientSide()) {

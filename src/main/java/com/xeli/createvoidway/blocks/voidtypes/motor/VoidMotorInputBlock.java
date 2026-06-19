@@ -15,11 +15,9 @@ public class VoidMotorInputBlock extends AbstractVoidMotorBlock<VoidMotorInputTi
 		super(properties);
 	}
 
-	/**
-	 * Face opposite the transmission axis; hosts frequency and owner slots.
-	 */
+	/** ValueBox orientation; matches north-baked slot models (Create Utilities void motor). */
 	public static Direction getLinkSlotFace(BlockState state) {
-		return state.getValue(DirectionalKineticBlock.FACING).getOpposite();
+		return state.getValue(DirectionalKineticBlock.FACING);
 	}
 
 	@Override

@@ -69,11 +69,10 @@ public class AbstractVoidBatteryRenderer<T extends AbstractVoidBatteryTileEntity
 		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
-		BlockState state = be.getBlockState();
 		Direction direction = Direction.DOWN;
 		Direction.Axis axis = direction.getAxis();
 
-		SuperByteBuffer shaft = VoidShaftBuffers.partialHalfFacing(direction);
+		SuperByteBuffer shaft = VoidShaftBuffers.bottomHalfAtFace(1);
 
 		BlockPos pos = be.getBlockPos();
 		float time = AnimationTickHolder.getRenderTime(be.getLevel());

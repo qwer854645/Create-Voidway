@@ -4,9 +4,9 @@
     "facing=north,waterlogged=true": { "model": "createvoidway:block/void_teleport_link/block", "y": 180 },
     "facing=south,waterlogged=false": { "model": "createvoidway:block/void_teleport_link/block" },
     "facing=south,waterlogged=true": { "model": "createvoidway:block/void_teleport_link/block" },
-    "facing=west,waterlogged=false": { "model": "createvoidway:block/void_teleport_link/block", "y": 270 },
-    "facing=west,waterlogged=true": { "model": "createvoidway:block/void_teleport_link/block", "y": 270 },
-    "facing=east,waterlogged=false": { "model": "createvoidway:block/void_teleport_link/block", "y": 90 },
-    "facing=east,waterlogged=true": { "model": "createvoidway:block/void_teleport_link/block", "y": 90 }
+    "facing=west,waterlogged=false": { "model": "createvoidway:block/void_teleport_link/block", "y": 90 },
+    "facing=west,waterlogged=true": { "model": "createvoidway:block/void_teleport_link/block", "y": 90 },
+    "facing=east,waterlogged=false": { "model": "createvoidway:block/void_teleport_link/block", "y": 270 },
+    "facing=east,waterlogged=true": { "model": "createvoidway:block/void_teleport_link/block", "y": 270 }
   }
 }

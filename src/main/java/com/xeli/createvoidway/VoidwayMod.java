@@ -12,6 +12,8 @@ import com.xeli.createvoidway.blocks.voidtypes.VoidStorageNetworkHandler;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportNetworkHandler;
 import com.xeli.createvoidway.blocks.portal.VoidPortalNetworkHandler;
 import com.xeli.createvoidway.blocks.portal.VoidPortalTrackProvider;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeNamesData;
+import com.xeli.createvoidway.blocks.terminal.VoidTerminalNetworkHandler;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTank;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTanksData;
@@ -55,10 +57,12 @@ public class VoidwayMod {
 	public static final VoidStorageNetworkHandler VOID_STORAGE_LINK_NETWORK_HANDLER = new VoidStorageNetworkHandler();
 	public static final VoidTeleportNetworkHandler VOID_TELEPORT_NETWORK_HANDLER = new VoidTeleportNetworkHandler();
 	public static final VoidPortalNetworkHandler VOID_PORTAL_NETWORK_HANDLER = new VoidPortalNetworkHandler();
+	public static final VoidTerminalNetworkHandler VOID_TERMINAL_NETWORK_HANDLER = new VoidTerminalNetworkHandler();
 	public static VoidChestInventoriesData VOID_CHEST_INVENTORIES_DATA;
 
 	public static VoidTanksData VOID_TANKS_DATA;
 	public static VoidBatteryData VOID_BATTERIES_DATA;
+	public static VoidNodeNamesData VOID_NODE_NAMES_DATA;
 
 	public VoidwayMod(IEventBus modEventBus, ModContainer modContainer) {
 		modContainer.registerConfig(ModConfig.Type.COMMON, VoidwayConfig.SPEC);
@@ -123,6 +127,8 @@ public class VoidwayMod {
 		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, RWTileEntities.VOID_TELEPORT_PAD.get(),
 				(blockEntity, side) -> blockEntity.getItemHandler(side));
 		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, RWTileEntities.VOID_PORTAL_FLUID.get(),
+				(blockEntity, side) -> blockEntity.getFluidHandler(side));
+		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, RWTileEntities.VOID_NODE_TERMINAL.get(),
 				(blockEntity, side) -> blockEntity.getFluidHandler(side));
 	}
 

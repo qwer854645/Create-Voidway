@@ -51,9 +51,8 @@ public class VoidScenes {
 		BlockPos receiverPos = util.grid().at(1, 1, 2);
 
 		playVoidSequence(
-				scene, util, VoidMotorOutputTileEntity.class,
-				.015f, 0,
-				"Void Motor", "Rotational Force",
+				scene, util, "void_motor", VoidMotorOutputTileEntity.class,
+				PonderSceneHelper.northHorizontalShift(), 0,
 				sourcePos, receiverPos,
 				Direction.WEST, Direction.WEST,
 				(pos) -> scene.world().setKineticSpeed(receiver, 0),
@@ -115,9 +114,8 @@ public class VoidScenes {
 		BlockPos receiverPos = util.grid().at(2, 2, 3);
 
 		playVoidSequence(
-				scene, util, VoidChestOutputTileEntity.class,
-				-.0475f, -.1875f,
-				"Void Chest", "Items",
+				scene, util, "void_chest", VoidChestOutputTileEntity.class,
+				PonderSceneHelper.southHorizontalShift(), PonderSceneHelper.southHorizontalYOffset(),
 				sourcePos, receiverPos,
 				Direction.SOUTH, Direction.SOUTH,
 				(pos) -> {},
@@ -178,9 +176,8 @@ public class VoidScenes {
 		scene.addInstruction(parallel);
 
 		playVoidSequence(
-				scene, util, AbstractVoidTankTileEntity.class,
-				.015f, 0,
-				"Void Tank", "Fluids",
+				scene, util, "void_tank", AbstractVoidTankTileEntity.class,
+				PonderSceneHelper.northHorizontalShift(), 0,
 				sourcePos, receiverPos,
 				Direction.UP, Direction.UP,
 				(pos) -> {},
@@ -212,9 +209,8 @@ public class VoidScenes {
 		scene.idle(10);
 
 		playVoidSequence(
-				scene, util, AbstractVoidBatteryTileEntity.class,
-				-.0475f, -.1875f,
-				"Void Battery", "Energy",
+				scene, util, "void_battery", AbstractVoidBatteryTileEntity.class,
+				PonderSceneHelper.southHorizontalShift(), PonderSceneHelper.southHorizontalYOffset(),
 				sourcePos, receiverPos,
 				Direction.SOUTH, Direction.SOUTH,
 				(pos) -> {},
@@ -237,32 +233,28 @@ public class VoidScenes {
 		scene.world().showSection(util.select().position(tankPos), Direction.WEST);
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("Void Transfer Fluid is the catalyst consumed by many void devices while they operate")
-				.pointAt(util.vector().blockSurface(chestPos, Direction.NORTH));
+		PonderSceneHelper.showText(scene, "void_transfer_fluid", 1,
+				util.vector().blockSurface(chestPos, Direction.NORTH), 60);
 		scene.idle(70);
 
 		scene.overlay().showControls(util.vector().blockSurface(tankPos, Direction.WEST), Pointing.RIGHT, 40)
 				.withItem(RWFluids.getBucketStack());
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("Pipe it into the sides of Void Chests, Batteries, and Teleport Pads, or into Void Motor Inputs")
-				.pointAt(util.vector().blockSurface(chestPos, Direction.EAST));
+		PonderSceneHelper.showText(scene, "void_transfer_fluid", 2,
+				util.vector().blockSurface(chestPos, Direction.EAST), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(50)
-				.text("Void Portals draw the fluid through their dedicated Fluid Port instead")
-				.pointAt(util.vector().topOf(chestPos));
+		PonderSceneHelper.showText(scene, "void_transfer_fluid", 3,
+				util.vector().topOf(chestPos), 50);
 		scene.idle(60);
 	}
 
 	private static void playVoidSequence(CreateSceneBuilder scene,
 										 SceneBuildingUtil util,
+										 String sceneId,
 										 Class<? extends BlockEntity> beType,
 										 float shift, float yOffset,
-										 String blockName,
-										 String transmittedName,
 										 BlockPos firstPos,
 										 BlockPos secondPos,
 										 Direction firstDirection,
@@ -278,30 +270,24 @@ public class VoidScenes {
 		Selection secondBlock = util.select().position(secondPos);
 		Vec3 secondVec = util.vector().blockSurface(secondPos, secondDirection);
 
-		scene.overlay().showText(50)
-				.text(blockName + " can transmit " + transmittedName + " across distances")
-				.pointAt(firstVec);
+		PonderSceneHelper.showText(scene, sceneId, 1, firstVec, 50);
 		scene.idle(50);
 
 		if (rotate) scene.rotateCameraY(-90);
 		scene.addKeyframe();
 
-		Vec3 firstBackFreq = getFirstFrequency(firstVec, firstDirection, shift, yOffset);
-		Vec3 firstFrontFreq = getLastFrequency(firstVec, firstDirection, shift, yOffset);
-		Vec3 firstOwner = getOwner(firstVec, firstDirection, shift, yOffset);
+		Vec3 firstBackFreq = PonderSceneHelper.firstFrequency(firstVec, firstDirection, shift, yOffset);
+		Vec3 firstFrontFreq = PonderSceneHelper.lastFrequency(firstVec, firstDirection, shift, yOffset);
+		Vec3 firstOwner = PonderSceneHelper.ownerSlot(firstVec, firstDirection, shift, yOffset);
 
-		Vec3 secondBackFreq = getFirstFrequency(secondVec, secondDirection, shift, yOffset);
-		Vec3 secondFrontFreq = getLastFrequency(secondVec, secondDirection, shift, yOffset);
+		Vec3 secondBackFreq = PonderSceneHelper.firstFrequency(secondVec, secondDirection, shift, yOffset);
+		Vec3 secondFrontFreq = PonderSceneHelper.lastFrequency(secondVec, secondDirection, shift, yOffset);
 
 		scene.idle(10);
-		scene.overlay().showFilterSlotInput(firstBackFreq, firstDirection, 100);
-		scene.overlay().showFilterSlotInput(firstFrontFreq, firstDirection, 100);
+		PonderSceneHelper.showFrequencySlots(scene, firstBackFreq, firstFrontFreq, firstDirection, 100);
 		scene.idle(10);
 
-		scene.overlay().showText(50)
-				.text("Placing items in the two upper slots can specify a Frequency")
-				.placeNearTarget()
-				.pointAt(firstFrontFreq);
+		PonderSceneHelper.showTextNear(scene, sceneId, 2, firstFrontFreq, 50);
 		scene.idle(60);
 
 		ItemStack iron = new ItemStack(Items.IRON_INGOT);
@@ -317,20 +303,17 @@ public class VoidScenes {
 
 		scene.addKeyframe();
 		scene.idle(10);
-		scene.overlay().showFilterSlotInput(firstOwner, firstDirection, 100);
+		PonderSceneHelper.showFilterInput(scene, firstOwner, firstDirection, 100);
 		scene.idle(10);
 
-		scene.overlay().showControls(firstOwner, Pointing.UP, 40).rightClick();
+		PonderSceneHelper.showRightClick(scene, firstOwner, Pointing.UP, 40);
 		scene.idle(7);
 		scene.world().modifyBlockEntityNBT(firstBlock, beType, nbt -> nbt.remove("Owner"));
 
-		scene.overlay().showText(50)
-				.text("Right-click the bottom slot to unclaim the " + blockName)
-				.placeNearTarget()
-				.pointAt(firstOwner);
+		PonderSceneHelper.showTextNear(scene, sceneId, 3, firstOwner, 50);
 		scene.idle(60);
 
-		scene.overlay().showControls(firstOwner, Pointing.UP, 40).rightClick();
+		PonderSceneHelper.showRightClick(scene, firstOwner, Pointing.UP, 40);
 		scene.idle(7);
 		scene.world().restoreBlocks(firstBlock);
 		scene.world().modifyBlockEntityNBT(firstBlock, beType, nbt -> {
@@ -340,25 +323,16 @@ public class VoidScenes {
 
 		if (isTank) onConnect.accept(firstPos);
 
-		scene.overlay().showText(50)
-				.text("Right-click it again to re-claim it")
-				.placeNearTarget()
-				.pointAt(firstOwner);
+		PonderSceneHelper.showTextNear(scene, sceneId, 4, firstOwner, 50);
 		scene.idle(60);
 
-		scene.overlay().showText(50)
-				.text("If a " + blockName + " is claimed, only it's owner is able to edit it's Frequency")
-				.placeNearTarget()
-				.pointAt(firstVec);
+		PonderSceneHelper.showTextNear(scene, sceneId, 5, firstVec, 50);
 		scene.idle(60);
 
 		scene.addKeyframe();
 		scene.idle(10);
 
-		scene.overlay().showText(60)
-				.text("A " + blockName + " will only receive " + transmittedName + " from " + blockName + "s with the same Frequency and Owner")
-				.placeNearTarget()
-				.pointAt(secondVec);
+		PonderSceneHelper.showTextNear(scene, sceneId, 6, secondVec, 60);
 		scene.idle(70);
 
 		showFrequency(scene, secondBlock, beType, secondFrontFreq, "FrequencyLast", Pointing.LEFT, iron);
@@ -384,39 +358,6 @@ public class VoidScenes {
 		scene.idle(7);
 		scene.world().modifyBlockEntityNBT(block, beType,
 				nbt -> nbt.put(slotId, item.save(Minecraft.getInstance().level.registryAccess())));
-	}
-
-	private static Vec3 getFirstFrequency(Vec3 faceVec, Direction face, float shift, float yOffset) {
-		return switch (face) {
-			case NORTH -> faceVec.add(.15625f, .15625f + yOffset, -shift);
-			case EAST -> faceVec.add(shift, .15625f + yOffset, .15625f);
-			case SOUTH -> faceVec.add(-.15625f, .15625f + yOffset, shift);
-			case WEST -> faceVec.add(-shift, .15625f + yOffset, -.15625f);
-			case UP -> faceVec.add(.15625f + yOffset, shift, -.15625f);
-			case DOWN -> faceVec.add(.15625f + yOffset, -shift, .15625f);
-		};
-	}
-
-	private static Vec3 getLastFrequency(Vec3 faceVec, Direction face, float shift, float yOffset) {
-		return switch (face) {
-			case NORTH -> faceVec.add(-.15625f, .15625f + yOffset, -shift);
-			case EAST -> faceVec.add(shift, .15625f + yOffset, -.15625f);
-			case SOUTH -> faceVec.add(.15625f, .15625f + yOffset, shift);
-			case WEST -> faceVec.add(-shift, .15625f + yOffset, .15625f);
-			case UP -> faceVec.add(.15625f + yOffset, shift, .15625f);
-			case DOWN -> faceVec.add(.15625f + yOffset, -shift, -.15625f);
-		};
-	}
-
-	private static Vec3 getOwner(Vec3 faceVec, Direction face, float shift, float yOffset) {
-		return switch (face) {
-			case NORTH -> faceVec.add(0, -.15625f + yOffset, -shift);
-			case EAST -> faceVec.add(shift, -.15625f + yOffset, 0);
-			case SOUTH -> faceVec.add(0, -.15625f + yOffset, shift);
-			case WEST -> faceVec.add(-shift, -.15625f + yOffset, 0);
-			case UP -> faceVec.add(-.15625f + yOffset, shift, 0);
-			case DOWN -> faceVec.add(-.15625f + yOffset, -shift, 0);
-		};
 	}
 
 }

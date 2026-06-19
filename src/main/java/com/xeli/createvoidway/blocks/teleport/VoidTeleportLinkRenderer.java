@@ -2,6 +2,7 @@ package com.xeli.createvoidway.blocks.teleport;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
+import com.xeli.createvoidway.blocks.voidtypes.VoidPortalOverlay;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
 import net.minecraft.client.model.SkullModel;
 import net.minecraft.client.model.SkullModelBase;
@@ -33,17 +34,17 @@ public class VoidTeleportLinkRenderer extends SmartBlockEntityRenderer<VoidTelep
 
 	@Override
 	public boolean shouldRenderFrame(VoidTeleportLinkTileEntity te, Direction direction) {
-		return false;
+		return VoidPortalOverlay.isUpFace(direction);
 	}
 
 	@Override
 	public float getFrameWidth() {
-		return 0;
+		return VoidPortalOverlay.LINK_FRAME_WIDTH;
 	}
 
 	@Override
 	public float getFrameOffset(Direction direction) {
-		return 0;
+		return VoidPortalOverlay.yOffset(direction, VoidPortalOverlay.LINK_FRAME_Y);
 	}
 
 }

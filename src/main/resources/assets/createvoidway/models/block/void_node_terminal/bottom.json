@@ -1,0 +1,56 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "block/block",
+	"render_type": "minecraft:cutout_mipped",
+	"textures": {
+		"0": "createvoidway:block/void_chest",
+		"particle": "createvoidway:block/void_casing"
+	},
+	"elements": [
+		{
+			"name": "bottom",
+			"from": [1, 0, 1],
+			"to": [15, 16, 15],
+			"faces": {
+				"north": {"uv": [7, 8.25, 3.5, 10.75], "rotation": 180, "texture": "#0"},
+				"east": {"uv": [3.5, 8.25, 0, 10.75], "rotation": 180, "texture": "#0"},
+				"south": {"uv": [14, 8.25, 10.5, 10.75], "rotation": 180, "texture": "#0"},
+				"west": {"uv": [10.5, 8.25, 7, 10.75], "rotation": 180, "texture": "#0"},
+				"up": {"uv": [3.5, 4.75, 7, 8.25], "texture": "#0"},
+				"down": {"uv": [3.5, 4.75, 7, 8.25], "texture": "#0"}
+			}
+		},
+		{
+			"name": "bottom_north",
+			"from": [1, 0, 1],
+			"to": [15, 0, 6],
+			"faces": {
+				"down": {"uv": [3.5, 0, 7, 1.75], "texture": "#0"}
+			}
+		},
+		{
+			"name": "bottom_south",
+			"from": [1, 0, 10],
+			"to": [15, 0, 15],
+			"faces": {
+				"down": {"uv": [3.5, 2.25, 7, 3.5], "texture": "#0"}
+			}
+		},
+		{
+			"name": "bottom_west",
+			"from": [1, 0, 6],
+			"to": [6, 0, 10],
+			"faces": {
+				"down": {"uv": [3.5, 1.75, 4.25, 2.25], "texture": "#0"}
+			}
+		},
+		{
+			"name": "bottom_east",
+			"from": [10, 0, 6],
+			"to": [15, 0, 10],
+			"faces": {
+				"down": {"uv": [6.25, 1.75, 7, 2.25], "texture": "#0"}
+			}
+		}
+	]
+}

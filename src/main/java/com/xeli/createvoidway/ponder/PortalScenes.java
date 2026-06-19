@@ -34,14 +34,12 @@ public class PortalScenes {
 		scene.world().showSection(frame, Direction.SOUTH);
 		scene.idle(20);
 
-		scene.overlay().showText(60)
-				.text("Build a hollow square frame of Void Portal Frame blocks with a square opening")
-				.pointAt(util.vector().blockSurface(build.connectorPos, Direction.SOUTH));
+		PonderSceneHelper.showText(scene, "void_portal", 1,
+				util.vector().blockSurface(build.connectorPos, Direction.SOUTH), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(70)
-				.text("The bottom row must contain exactly one Fluid Port, Connector, and Stress Port — in any order, side by side")
-				.pointAt(util.vector().blockSurface(build.fluidPos, Direction.SOUTH));
+		PonderSceneHelper.showText(scene, "void_portal", 2,
+				util.vector().blockSurface(build.fluidPos, Direction.SOUTH), 70);
 		scene.idle(80);
 
 		configureConnectorFrequency(scene, util, build.connectorPos);
@@ -52,22 +50,19 @@ public class PortalScenes {
 		scene.world().showSection(shaft, Direction.SOUTH);
 		scene.world().setKineticSpeed(shaft, 32);
 
-		scene.overlay().showText(60)
-				.text("Connect a rotating shaft to the Stress Port's front or back face")
-				.pointAt(util.vector().blockSurface(build.stressPos, Direction.NORTH));
+		PonderSceneHelper.showText(scene, "void_portal", 4,
+				util.vector().blockSurface(build.stressPos, Direction.NORTH), 60);
 		scene.idle(70);
 
-		scene.overlay().showText(60)
-				.text("Pipe Void Transfer Fluid into the Fluid Port to fuel the portal")
-				.pointAt(util.vector().blockSurface(build.fluidPos, Direction.SOUTH));
+		PonderSceneHelper.showText(scene, "void_portal", 5,
+				util.vector().blockSurface(build.fluidPos, Direction.SOUTH), 60);
 		scene.idle(70);
 
 		fillPortalInterior(scene, util, build);
 		scene.idle(10);
 
-		scene.overlay().showText(70)
-				.text("When paired with another valid portal on the same Frequency, the opening fills and entities teleport after standing inside for 3 seconds")
-				.pointAt(util.vector().centerOf(build.connectorPos.above(2)));
+		PonderSceneHelper.showText(scene, "void_portal", 6,
+				util.vector().centerOf(build.connectorPos.above(2)), 70);
 		scene.idle(80);
 	}
 
@@ -75,19 +70,15 @@ public class PortalScenes {
 		Selection connector = util.select().position(connectorPos);
 		Direction face = Direction.SOUTH;
 		Vec3 faceVec = util.vector().blockSurface(connectorPos, face);
-		float shift = .015f;
+		float shift = PonderSceneHelper.northHorizontalShift();
 
-		Vec3 backFreq = faceVec.add(.15625f, .15625f, shift);
-		Vec3 frontFreq = faceVec.add(-.15625f, .15625f, shift);
+		Vec3 backFreq = PonderSceneHelper.firstFrequency(faceVec, face, shift, 0);
+		Vec3 frontFreq = PonderSceneHelper.lastFrequency(faceVec, face, shift, 0);
 
-		scene.overlay().showFilterSlotInput(backFreq, face, 80);
-		scene.overlay().showFilterSlotInput(frontFreq, face, 80);
+		PonderSceneHelper.showFrequencySlots(scene, backFreq, frontFreq, face, 80);
 		scene.idle(10);
 
-		scene.overlay().showText(50)
-				.text("Set the Connector's Frequency like other void devices to pair with a remote portal")
-				.placeNearTarget()
-				.pointAt(frontFreq);
+		PonderSceneHelper.showTextNear(scene, "void_portal", 3, frontFreq, 50);
 		scene.idle(60);
 
 		ItemStack iron = new ItemStack(Items.IRON_INGOT);

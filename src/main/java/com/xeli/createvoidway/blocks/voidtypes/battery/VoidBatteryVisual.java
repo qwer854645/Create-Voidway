@@ -8,9 +8,11 @@ import dev.engine_room.flywheel.api.instance.Instance;
 import dev.engine_room.flywheel.api.instance.Instancer;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import dev.engine_room.flywheel.lib.model.Models;
+import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.function.Consumer;
 
@@ -28,9 +30,15 @@ public class VoidBatteryVisual extends KineticBlockEntityVisual<AbstractVoidBatt
 				.instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
 		shaft = instancer.createInstance();
 		shaft.setup(blockEntity, Direction.Axis.Y, getSpeed())
-				.setPosition(getVisualPosition())
+				.setPosition(getShaftPosition())
 				.rotateToFace(Direction.SOUTH, SHAFT_FACE)
 				.setChanged();
+	}
+
+	protected Vector3f getShaftPosition() {
+		BlockPos visualPos = getVisualPosition();
+		return new Vector3f(visualPos.getX(), visualPos.getY() + VoidShaftBuffers.flywheelBottomExtendedYOffset(1),
+				visualPos.getZ());
 	}
 
 	private float getSpeed() {
@@ -55,7 +63,9 @@ public class VoidBatteryVisual extends KineticBlockEntityVisual<AbstractVoidBatt
 	@Override
 	public void update(float partialTick) {
 		updateSourceFacing();
-		shaft.setup(blockEntity, Direction.Axis.Y, getSpeed()).setChanged();
+		shaft.setup(blockEntity, Direction.Axis.Y, getSpeed())
+				.setPosition(getShaftPosition())
+				.setChanged();
 	}
 
 	@Override

@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.xeli.createvoidway.blocks.VoidShaftBuffers;
+import com.xeli.createvoidway.blocks.voidtypes.VoidPortalOverlay;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
-import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.catnip.render.CachedBuffers;
@@ -22,10 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> extends KineticBlockEntityRenderer<T>
 		implements VoidTileRenderer<T> {
-
-	/** Bottom frame cavity is 4 voxels tall; keep the shaft stub inside it. */
-	private static final float BOTTOM_SHAFT_Y_SCALE = 0.22f;
-	private static final float BOTTOM_SHAFT_Y_OFFSET = -4.5f / 16f;
 
 	private final SkullModelBase skullModelBase;
 
@@ -52,18 +48,11 @@ public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> exte
 	}
 
 	private void renderBottomShaft(T be, PoseStack ms, MultiBufferSource buffer, int light) {
-		if (VisualizationManager.supportsVisualization(be.getLevel()))
-			return;
-
-		BlockState state = be.getBlockState();
 		Direction direction = Direction.DOWN;
 		Direction.Axis axis = direction.getAxis();
 
-		SuperByteBuffer shaft = VoidShaftBuffers.partialHalfFacing(direction)
-				.translate(0, BOTTOM_SHAFT_Y_OFFSET, 0)
-				.center()
-				.scale(0, BOTTOM_SHAFT_Y_SCALE, 0)
-				.uncenter();
+		SuperByteBuffer shaft = VoidShaftBuffers.bottomCavityStub()
+				.translate(0, VoidShaftBuffers.tankShaftDownOffset(), 0);
 
 		BlockPos pos = be.getBlockPos();
 		float time = AnimationTickHolder.getRenderTime(be.getLevel());
@@ -93,17 +82,19 @@ public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> exte
 
 	@Override
 	public boolean shouldRenderFrame(T te, Direction direction) {
-		return !te.isClosed();
+		if (te.isClosed())
+			return false;
+		return VoidPortalOverlay.isUpFace(direction) || direction.getAxis().isHorizontal();
 	}
 
 	@Override
 	public float getFrameWidth() {
-		return 0.75f;
+		return VoidPortalOverlay.TANK_WINDOW_FRAME_WIDTH;
 	}
 
 	@Override
 	public float getFrameOffset(Direction direction) {
-		return direction.getAxis() == Direction.Axis.Y ? 0.251f : 0.124f;
+		return VoidPortalOverlay.yOffset(direction, 0.251f);
 	}
 
 }

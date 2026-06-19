@@ -16,6 +16,8 @@
     "createvoidway:void_battery_input",
     "createvoidway:void_teleport_link",
     "createvoidway:void_teleport_pad",
+    "createvoidway:void_node_terminal",
+    "createvoidway:void_node_terminal_top",
     "createvoidway:gearcube",
     "createvoidway:lshaped_gearbox",
     "createvoidway:amethyst_tiles",

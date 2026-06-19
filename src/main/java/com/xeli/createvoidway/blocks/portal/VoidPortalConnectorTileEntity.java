@@ -4,8 +4,7 @@ import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.xeli.createvoidway.VoidwayMod;
-import com.xeli.createvoidway.voidlink.VoidLinkSlot;
-import net.createmod.catnip.math.VecHelper;
+import com.xeli.createvoidway.voidlink.VoidLinkSlots;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
@@ -16,7 +15,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -42,10 +40,8 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	}
 
 	protected void createLink() {
-		Triple<VoidLinkSlot, VoidLinkSlot, VoidLinkSlot> slots = VoidLinkSlot.makeSlots(
-				index -> new VoidLinkSlot(index,
-						blockState -> blockState.getValue(VoidPortalConnectorBlock.FACING),
-						VecHelper.voxelSpace(5.5F, 10.5F, -.001F)));
+		var slots = VoidLinkSlots.southModelHorizontal(
+				VoidPortalConnectorBlock::getLinkSlotFace, 10.5F);
 		link = new VoidPortalLinkBehaviour(this, slots);
 	}
 

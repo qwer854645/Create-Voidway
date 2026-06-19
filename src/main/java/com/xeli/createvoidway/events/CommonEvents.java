@@ -4,6 +4,7 @@ import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryData;
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestInventoriesData;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTanksData;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeNamesData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -18,6 +19,7 @@ public class CommonEvents {
 		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.onLoadWorld(level);
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onLoadWorld(level);
 		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.onLoadWorld(level);
+		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.onLoadWorld(level);
 
 		MinecraftServer server = level.getServer();
 		if (server == null)
@@ -33,6 +35,9 @@ public class CommonEvents {
 
 		VoidwayMod.VOID_BATTERIES_DATA = dataStorage
 				.computeIfAbsent(new SavedData.Factory<>(VoidBatteryData::new, VoidBatteryData::load), "VoidBatteries");
+
+		VoidwayMod.VOID_NODE_NAMES_DATA = dataStorage
+				.computeIfAbsent(new SavedData.Factory<>(VoidNodeNamesData::new, VoidNodeNamesData::load), "VoidNodeNames");
 	}
 
 	public static void onUnload(LevelEvent.Unload event) {
@@ -40,6 +45,7 @@ public class CommonEvents {
 		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
+		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 	}
 
 }

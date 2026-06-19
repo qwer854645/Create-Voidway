@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.RaycastHelper;
 
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
+import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalMultiblock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -22,7 +23,7 @@ public class VoidLinkHandler {
 	public static void onBlockActivated(PlayerInteractEvent.RightClickBlock event) {
 
 		Level world = event.getLevel();
-		BlockPos pos = event.getPos();
+		BlockPos pos = VoidNodeTerminalMultiblock.resolveBehaviourPos(world, event.getPos());
 		Player player = event.getEntity();
 		InteractionHand hand = event.getHand();
 

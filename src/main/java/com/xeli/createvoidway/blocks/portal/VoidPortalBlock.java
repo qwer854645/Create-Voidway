@@ -35,10 +35,9 @@ public class VoidPortalBlock extends Block {
 
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		Direction.Axis axis = state.getValue(HORIZONTAL_AXIS);
-		if (axis == Direction.Axis.X)
-			return Block.box(0, 0, 6, 16, 16, 10);
-		return Block.box(6, 0, 0, 10, 16, 16);
+		return state.getValue(HORIZONTAL_AXIS) == Direction.Axis.X
+				? Block.box(0, 0, 6, 16, 16, 10)
+				: Block.box(6, 0, 0, 10, 16, 16);
 	}
 
 	@Override

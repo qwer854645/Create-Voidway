@@ -254,6 +254,11 @@ public record VoidPortalShape(
 		return new VoidPortalShape(walkAxis, connectorPos, fluidPos, stressPos, left, right, bottom, top, planeCoord);
 	}
 
+	/** Block axis for {@link net.minecraft.world.level.block.NetherPortalBlock} models (width direction). */
+	public Direction.Axis portalBlockAxis() {
+		return widthAxis();
+	}
+
 	public int innerWidth() {
 		return right - left - 1;
 	}

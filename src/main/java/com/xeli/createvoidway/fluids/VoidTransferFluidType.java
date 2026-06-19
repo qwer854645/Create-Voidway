@@ -6,7 +6,8 @@ import net.neoforged.neoforge.fluids.FluidType;
 import java.util.function.Supplier;
 
 /**
- * Server-side fluid type for void transfer fluid. Client rendering is registered in {@link VoidTransferFluidClientExtensions}.
+ * Server-side fluid type for void transfer fluid.
+ * Client rendering is registered in {@link VoidwayClient}.
  */
 public final class VoidTransferFluidType {
 
