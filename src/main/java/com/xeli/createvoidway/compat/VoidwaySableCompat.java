@@ -36,6 +36,18 @@ public final class VoidwaySableCompat {
 			entity.setDeltaMovement(entity.getDeltaMovement().add(velocity));
 	}
 
+	public static double distanceSquaredToBlock(@Nullable Level level, Vec3 from, BlockPos blockPos) {
+		Vec3 center = Vec3.atCenterOf(blockPos);
+		if (level == null)
+			return from.distanceToSqr(center);
+		return SableCompanion.INSTANCE.distanceSquaredWithSubLevels(level, from, center);
+	}
+
+	public static boolean isWithinRenderDistance(@Nullable Level level, Vec3 viewerPos, BlockPos blockPos,
+			float maxDistance) {
+		return distanceSquaredToBlock(level, viewerPos, blockPos) <= (double) maxDistance * maxDistance;
+	}
+
 	@Nullable
 	public static Level levelFrom(LevelAccessor accessor) {
 		return accessor instanceof Level level ? level : null;

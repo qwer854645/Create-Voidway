@@ -15,7 +15,8 @@ import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalMultiblock;
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
-import net.createmod.catnip.math.VecHelper;
+import com.xeli.createvoidway.compat.VoidwaySableCompat;
+import dev.ryanhcode.sable.companion.SableCompanion;
 import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.SkullModelBase;
@@ -96,9 +97,11 @@ public class VoidLinkRenderer {
 
 		Entity cameraEntity = Minecraft.getInstance().cameraEntity;
 		float max = AllConfigs.client().filterItemRenderDistance.getF();
-		if (!te.isVirtual() && cameraEntity != null && cameraEntity.position()
-				.distanceToSqr(VecHelper.getCenterOf(te.getBlockPos())) > (max * max))
-			return;
+		if (!te.isVirtual() && cameraEntity != null) {
+			Vec3 cameraPos = SableCompanion.INSTANCE.getEyePositionInterpolated(cameraEntity, partialTicks);
+			if (!VoidwaySableCompat.isWithinRenderDistance(te.getLevel(), cameraPos, te.getBlockPos(), max))
+				return;
+		}
 
 		VoidLinkBehaviour behaviour = te.getBehaviour(VoidLinkBehaviour.TYPE);
 		if (behaviour == null) return;

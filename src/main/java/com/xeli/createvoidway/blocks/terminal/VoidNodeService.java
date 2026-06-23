@@ -83,7 +83,7 @@ public final class VoidNodeService {
 			return false;
 		}
 
-		Vec3 target = VoidwaySableCompat.globalTeleportPos(targetLevel, targetPos, 2.05);
+		Vec3 target = VoidNodeTerminalLanding.findTeleportPos(targetLevel, targetPos, player);
 		player.teleportTo(targetLevel, target.x, target.y, target.z, java.util.Collections.emptySet(),
 				player.getYRot(), player.getXRot());
 		VoidwaySableCompat.inheritSubLevelVelocity(targetLevel, player, target);

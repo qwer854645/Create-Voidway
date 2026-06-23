@@ -227,6 +227,7 @@
   "createvoidway.ponder.void_transfer_fluid.text_2": "将其管道接入虚空箱子、蓄电池和传送台的两侧，或接入虚空马达输入端",
   "createvoidway.ponder.void_transfer_fluid.text_3": "虚空传送门则通过专用的流体口抽取流体",
   "block.createvoidway.void_node_terminal": "虚空节点终端",
+  "block.createvoidway.void_node_terminal_top": "虚空节点终端",
   "createvoidway.void_node_terminal.insufficient_stress": "虚空节点终端需要在底面接入旋转传动轴",
   "createvoidway.void_node_terminal.insufficient_transfer_fluid": "虚空节点终端需要从两侧接入虚空传送液",
   "createvoidway.void_node_terminal.insufficient_fluid": "虚空传送液不足，无法传送",

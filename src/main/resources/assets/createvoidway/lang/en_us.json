@@ -227,6 +227,7 @@
   "createvoidway.ponder.void_transfer_fluid.text_2": "Pipe it into the sides of Void Chests, Batteries, and Teleport Pads, or into Void Motor Inputs",
   "createvoidway.ponder.void_transfer_fluid.text_3": "Void Portals draw the fluid through their dedicated Fluid Port instead",
   "block.createvoidway.void_node_terminal": "Void Node Terminal",
+  "block.createvoidway.void_node_terminal_top": "Void Node Terminal",
   "createvoidway.void_node_terminal.insufficient_stress": "Void Node Terminal requires a rotating shaft below",
   "createvoidway.void_node_terminal.insufficient_transfer_fluid": "Void Node Terminal requires void transfer fluid from the sides",
   "createvoidway.void_node_terminal.insufficient_fluid": "Not enough void transfer fluid to teleport",

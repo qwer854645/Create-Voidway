@@ -1,5 +1,15 @@
 {
   "values": [
-    "createvoidway:void_steel_bars"
+    "createvoidway:void_steel_bars",
+    "createvoidway:void_casing",
+    "createvoidway:void_chest_output",
+    "createvoidway:void_chest_input",
+    "createvoidway:void_battery_output",
+    "createvoidway:void_battery_input",
+    "createvoidway:void_portal_frame",
+    "createvoidway:void_portal_fluid",
+    "createvoidway:void_portal_stress",
+    "createvoidway:void_portal_connector",
+    "createvoidway:void_node_terminal"
   ]
 }
