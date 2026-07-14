@@ -25,6 +25,10 @@ sourceSets.main.resources {
 }
 
 repositories {
+    // Prefer local jars when present (maven.createmod.net is often slow/unreliable).
+    flatDir {
+        dirs 'libs'
+    }
     maven { url = 'https://maven.createmod.net' }
     maven { url = 'https://maven.ithundxr.dev/snapshots' }
     exclusiveContent {
@@ -109,10 +113,20 @@ configurations {
 }
 
 dependencies {
-    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
-    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
-    localRuntime("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    def localCreate = file("libs/create-${minecraft_version}-${create_version}-slim.jar")
+    def localPonder = file("libs/ponder-neoforge-${ponder_version}+mc${minecraft_version}.jar")
+    def localFlywheel = file("libs/flywheel-neoforge-${minecraft_version}-${flywheel_version}.jar")
+    if (localCreate.exists() && localPonder.exists() && localFlywheel.exists()) {
+        implementation(files(localCreate))
+        implementation(files(localPonder))
+        compileOnly(files(localFlywheel))
+        localRuntime(files(localFlywheel))
+    } else {
+        implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+        implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+        compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+        localRuntime("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    }
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
     jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:[${sable_companion_version},)")) {
         version {

@@ -4,6 +4,7 @@ import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -17,12 +18,12 @@ public final class VoidNodeNetworkIndex {
 	public record DimensionalBlockPos(ResourceLocation dimension, BlockPos pos) {
 	}
 
-	public static Set<DimensionalBlockPos> collectPositions(NetworkKey key) {
+	public static Set<DimensionalBlockPos> collectPositions(ServerLevel level, NetworkKey key) {
 		Set<DimensionalBlockPos> positions = new LinkedHashSet<>();
 		BiConsumer<ResourceLocation, BlockPos> collector = (dimension, pos) ->
 				positions.add(new DimensionalBlockPos(dimension, pos));
 
-		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.collectPositions(key, collector);
+		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.collectPositions(level, key, collector);
 		return positions;
 	}
 

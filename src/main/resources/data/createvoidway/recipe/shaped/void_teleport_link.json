@@ -7,14 +7,20 @@
     "G": {
       "item": "createvoidway:graviton_tube"
     },
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "S": {
+      "item": "createvoidway:void_steel_sheet"
+    },
     "C": {
       "item": "createvoidway:void_casing"
     }
   },
   "pattern": [
-    "A",
-    "G",
-    "C"
+    "AGA",
+    "ESE",
+    " C "
   ],
   "result": {
     "count": 1,

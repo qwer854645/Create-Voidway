@@ -59,9 +59,8 @@ public final class PortableVoidTerminalBinding {
 	public static boolean canInteract(net.minecraft.world.entity.player.Player player, NetworkKey key) {
 		if (player == null)
 			return false;
-		if (!player.mayBuild() && !player.isSpectator())
-			return false;
-		return key.owner == null || player.getGameProfile().equals(key.owner);
+		// Bound portable terminals are usable by any survival/creative player, not only the frequency owner.
+		return player.mayBuild() || player.isSpectator();
 	}
 
 }

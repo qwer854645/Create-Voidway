@@ -1,24 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "X": {
+    "G": {
       "item": "createvoidway:graviton_tube"
     },
-    "Y": {
-      "item": "createvoidway:void_casing"
+    "E": {
+      "item": "create:electron_tube"
     },
-    "Z": {
+    "S": {
       "item": "create:shaft"
+    },
+    "C": {
+      "item": "createvoidway:void_casing"
     }
   },
   "pattern": [
-    "R",
-    "X",
-    "Y",
-    "Z"
+    " G ",
+    "SES",
+    " C "
   ],
   "result": {
     "count": 1,

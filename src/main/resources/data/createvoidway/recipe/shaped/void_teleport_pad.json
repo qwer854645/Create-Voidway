@@ -4,17 +4,20 @@
     "L": {
       "item": "createvoidway:void_teleport_link"
     },
+    "S": {
+      "item": "createvoidway:void_steel_sheet"
+    },
     "C": {
       "item": "createvoidway:void_casing"
     },
-    "S": {
-      "item": "create:shaft"
+    "E": {
+      "item": "minecraft:ender_eye"
     }
   },
   "pattern": [
-    "L",
-    "C",
-    "S"
+    " L ",
+    "SCS",
+    " E "
   ],
   "result": {
     "count": 1,

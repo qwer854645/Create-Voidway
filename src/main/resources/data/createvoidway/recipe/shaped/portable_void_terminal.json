@@ -4,17 +4,23 @@
     "A": {
       "item": "createvoidway:polished_amethyst"
     },
+    "T": {
+      "item": "createvoidway:void_node_terminal"
+    },
     "G": {
       "item": "createvoidway:graviton_tube"
     },
-    "T": {
-      "item": "createvoidway:void_node_terminal"
+    "S": {
+      "item": "createvoidway:void_steel_sheet"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
     }
   },
   "pattern": [
-    "A",
-    "T",
-    "G"
+    " A ",
+    "STS",
+    "GEG"
   ],
   "result": {
     "count": 1,

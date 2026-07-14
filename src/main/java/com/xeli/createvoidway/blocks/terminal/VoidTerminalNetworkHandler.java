@@ -1,14 +1,18 @@
 package com.xeli.createvoidway.blocks.terminal;
 
 import com.simibubi.create.Create;
+import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 public class VoidTerminalNetworkHandler {
@@ -36,28 +40,51 @@ public class VoidTerminalNetworkHandler {
 	}
 
 	public void addToNetwork(LevelAccessor world, VoidTerminalLinkBehaviour actor) {
-		getNetworkOf(world, actor).add(actor.getPos());
+		BlockPos pos = actor.getPos();
+		NetworkKey key = actor.getNetworkKey();
+		getNetworkOf(world, actor).add(pos);
+
+		VoidTerminalNetworkData data = VoidwayMod.VOID_TERMINAL_NETWORK_DATA;
+		if (data != null && world instanceof ServerLevel serverLevel)
+			data.add(serverLevel.registryAccess(), WorldHelper.getDimensionID(world), key, pos);
 	}
 
 	public void removeFromNetwork(LevelAccessor world, VoidTerminalLinkBehaviour actor) {
+		NetworkKey key = actor.getNetworkKey();
+		BlockPos pos = actor.getPos();
 		Set<BlockPos> network = getNetworkOf(world, actor);
-		network.remove(actor.getPos());
+		network.remove(pos);
 		if (network.isEmpty())
-			networksIn(world).remove(actor.getNetworkKey());
+			networksIn(world).remove(key);
+
+		VoidTerminalNetworkData data = VoidwayMod.VOID_TERMINAL_NETWORK_DATA;
+		if (data != null && world instanceof ServerLevel serverLevel)
+			data.remove(serverLevel.registryAccess(), WorldHelper.getDimensionID(world), key, pos);
 	}
 
-	private static boolean isAlive(LevelAccessor world, BlockPos pos) {
-		if (!world.hasChunkAt(pos))
-			return false;
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		return blockEntity != null && !blockEntity.isRemoved();
+	public void removeStalePosition(ServerLevel level, ResourceLocation dimension, BlockPos pos) {
+		Map<NetworkKey, Set<BlockPos>> networksInWorld = connections.get(dimension);
+		if (networksInWorld != null) {
+			networksInWorld.values().forEach(set -> set.remove(pos));
+			networksInWorld.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+		}
+		VoidTerminalNetworkData data = VoidwayMod.VOID_TERMINAL_NETWORK_DATA;
+		if (data != null)
+			data.removePosition(dimension, pos);
 	}
 
-	public void collectPositions(NetworkKey key, BiConsumer<ResourceLocation, BlockPos> consumer) {
+	public void collectPositions(ServerLevel anyServerLevel, NetworkKey key,
+			BiConsumer<ResourceLocation, BlockPos> consumer) {
+		VoidTerminalNetworkData data = VoidwayMod.VOID_TERMINAL_NETWORK_DATA;
+		if (data != null) {
+			data.collectPositions(key, consumer);
+			return;
+		}
+
 		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
 			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
 			if (positions == null)
-			 continue;
+				continue;
 			ResourceLocation dimension = dimensionEntry.getKey();
 			for (BlockPos pos : positions)
 				consumer.accept(dimension, pos);

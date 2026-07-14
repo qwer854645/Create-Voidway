@@ -1,24 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "X": {
+    "G": {
       "item": "createvoidway:graviton_tube"
     },
-    "Y": {
+    "V": {
+      "item": "create:item_vault"
+    },
+    "C": {
       "item": "createvoidway:void_casing"
     },
-    "Z": {
-      "item": "minecraft:chest"
+    "H": {
+      "item": "create:smart_chute"
     }
   },
   "pattern": [
-    "R",
-    "X",
-    "Z",
-    "Y"
+    " G ",
+    "VCV",
+    " H "
   ],
   "result": {
     "count": 1,

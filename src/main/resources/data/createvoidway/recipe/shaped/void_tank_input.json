@@ -1,20 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "M": {
+    "O": {
       "item": "createvoidway:void_tank_output"
     },
-    "C": {
-      "item": "minecraft:copper_ingot"
+    "P": {
+      "item": "create:mechanical_pump"
     },
-    "H": {
-      "item": "minecraft:hopper"
+    "I": {
+      "item": "create:copper_sheet"
+    },
+    "C": {
+      "item": "createvoidway:void_casing"
     }
   },
   "pattern": [
-    "C",
-    "M",
-    "H"
+    " P ",
+    "IOI",
+    " C "
   ],
   "result": {
     "count": 1,

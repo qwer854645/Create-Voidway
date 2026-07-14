@@ -1,20 +1,26 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
+    "G": {
+      "item": "createvoidway:graviton_tube"
+    },
     "P": {
       "item": "create:fluid_pipe"
     },
-    "X": {
-      "item": "createvoidway:graviton_tube"
+    "T": {
+      "item": "create:fluid_tank"
     },
-    "Y": {
+    "C": {
       "item": "createvoidway:void_casing"
+    },
+    "F": {
+      "item": "createvoidway:void_portal_frame"
     }
   },
   "pattern": [
-    "X",
-    "P",
-    "Y"
+    " G ",
+    "PTP",
+    "FCF"
   ],
   "result": {
     "count": 1,

@@ -23,9 +23,16 @@ public class VoidTerminalLinkBehaviour extends VoidLinkBehaviour {
 
 	@Override
 	public void unload() {
+		// Keep terminals indexed while their chunk is unloaded so dedicated servers can still
+		// list/teleport to distant nodes. Permanent removal happens in destroy()/onLeaveNetwork().
+		super.unload();
+	}
+
+	@Override
+	public void destroy() {
 		if (!getWorld().isClientSide)
 			getHandler().removeFromNetwork(getWorld(), this);
-		super.unload();
+		super.destroy();
 	}
 
 	@Override

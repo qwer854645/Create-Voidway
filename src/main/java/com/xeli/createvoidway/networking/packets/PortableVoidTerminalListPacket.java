@@ -1,17 +1,16 @@
 package com.xeli.createvoidway.networking.packets;
 
 import com.xeli.createvoidway.VoidwayMod;
-import com.xeli.createvoidway.networking.RWStreamCodecs;
 import com.xeli.createvoidway.blocks.terminal.PortableVoidTerminalContainer;
-import com.xeli.createvoidway.blocks.terminal.PortableVoidTerminalScreen;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeEntry;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
-import net.minecraft.client.Minecraft;
+import com.xeli.createvoidway.networking.RWStreamCodecs;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.InteractionHand;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
@@ -36,19 +35,18 @@ public record PortableVoidTerminalListPacket(InteractionHand hand, NetworkKey ne
 
 	public static void handle(PortableVoidTerminalListPacket packet, IPayloadContext context) {
 		context.enqueueWork(() -> {
-			if (context.player() == null)
+			if (!FMLEnvironment.dist.isClient())
 				return;
-			if (context.player().containerMenu instanceof PortableVoidTerminalContainer menu
-					&& menu.matchesBinding(packet.hand(), packet.networkKey())) {
-				menu.updateNodes(packet.nodes());
-				PENDING.remove(new ListKey(packet.hand(), packet.networkKey()));
-				if (Minecraft.getInstance().screen instanceof PortableVoidTerminalScreen screen
-						&& screen.getMenu() == menu)
-					screen.onNodesUpdated();
-				return;
-			}
-			PENDING.put(new ListKey(packet.hand(), packet.networkKey()), packet.nodes());
+			VoidNodeClientHandlers.onPortableList(packet);
 		});
+	}
+
+	static void storePending(PortableVoidTerminalListPacket packet) {
+		PENDING.put(new ListKey(packet.hand(), packet.networkKey()), packet.nodes());
+	}
+
+	static void clearPending(PortableVoidTerminalListPacket packet) {
+		PENDING.remove(new ListKey(packet.hand(), packet.networkKey()));
 	}
 
 	public static void applyPending(PortableVoidTerminalContainer menu) {

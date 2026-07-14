@@ -2,6 +2,7 @@ package com.xeli.createvoidway.blocks.terminal;
 
 import com.simibubi.create.foundation.gui.menu.MenuBase;
 import com.xeli.createvoidway.blocks.voidtypes.RWContainerTypes;
+import com.xeli.createvoidway.networking.packets.VoidNodePlayerListPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -20,11 +21,16 @@ import java.util.List;
 public class VoidNodeTerminalContainer extends MenuBase<VoidNodeTerminalTileEntity> {
 
 	private final List<VoidNodeEntry> nodes = new ArrayList<>();
+	private final List<VoidTerminalPlayerEntry> players = new ArrayList<>();
 	private int selectedIndex = -1;
+	private int selectedPlayerIndex = -1;
+	private boolean hasDeathLocation;
+	private int deathDistanceBlocks = VoidTerminalPlayerEntry.DISTANCE_OTHER_DIMENSION;
 
 	public VoidNodeTerminalContainer(MenuType<?> type, int id, Inventory inv, RegistryFriendlyByteBuf extraData) {
 		super(type, id, inv, extraData);
 		com.xeli.createvoidway.networking.packets.VoidNodeListPacket.applyPending(this);
+		VoidNodePlayerListPacket.applyPending(this);
 	}
 
 	public VoidNodeTerminalContainer(MenuType<?> type, int id, Inventory inv, VoidNodeTerminalTileEntity te) {
@@ -114,6 +120,44 @@ public class VoidNodeTerminalContainer extends MenuBase<VoidNodeTerminalTileEnti
 		if (selectedIndex < 0 || selectedIndex >= nodes.size())
 			return null;
 		return nodes.get(selectedIndex);
+	}
+
+	public void updatePlayers(boolean hasDeathLocation, int deathDistanceBlocks, List<VoidTerminalPlayerEntry> entries) {
+		this.hasDeathLocation = hasDeathLocation;
+		this.deathDistanceBlocks = deathDistanceBlocks;
+		players.clear();
+		players.addAll(entries);
+		if (selectedPlayerIndex >= players.size())
+			selectedPlayerIndex = players.isEmpty() ? -1 : 0;
+		else if (selectedPlayerIndex < 0 && !players.isEmpty())
+			selectedPlayerIndex = 0;
+	}
+
+	public List<VoidTerminalPlayerEntry> getPlayers() {
+		return Collections.unmodifiableList(players);
+	}
+
+	public boolean hasDeathLocation() {
+		return hasDeathLocation;
+	}
+
+	public int getDeathDistanceBlocks() {
+		return deathDistanceBlocks;
+	}
+
+	public int getSelectedPlayerIndex() {
+		return selectedPlayerIndex;
+	}
+
+	public void setSelectedPlayerIndex(int index) {
+		if (index >= 0 && index < players.size())
+			selectedPlayerIndex = index;
+	}
+
+	public VoidTerminalPlayerEntry getSelectedPlayer() {
+		if (selectedPlayerIndex < 0 || selectedPlayerIndex >= players.size())
+			return null;
+		return players.get(selectedPlayerIndex);
 	}
 
 }

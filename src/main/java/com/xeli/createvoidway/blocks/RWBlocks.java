@@ -53,6 +53,7 @@ public class RWBlocks {
 			.properties(p -> p.mapColor(MapColor.COLOR_GREEN))
 			.properties(p -> p.strength(55.0F, 1200.0F))
 			.properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
+			.tag(AllTags.AllBlockTags.WRENCH_PICKUP.tag)
 			.transform(pickaxeOnly())
 			.simpleItem()
 			.register();
@@ -313,6 +314,7 @@ public class RWBlocks {
 			.initialProperties(() -> Blocks.DEEPSLATE)
 			.properties(p -> p.mapColor(MapColor.TERRACOTTA_PURPLE).requiresCorrectToolForDrops())
 			.properties(p -> p.sound(SoundType.AMETHYST_CLUSTER))
+			.tag(AllTags.AllBlockTags.WRENCH_PICKUP.tag)
 			.transform(pickaxeOnly())
 			.simpleItem()
 			.register();
@@ -321,6 +323,7 @@ public class RWBlocks {
 			.initialProperties(() -> Blocks.DEEPSLATE)
 			.properties(p -> p.mapColor(MapColor.TERRACOTTA_PURPLE).requiresCorrectToolForDrops())
 			.properties(p -> p.sound(SoundType.AMETHYST_CLUSTER))
+			.tag(AllTags.AllBlockTags.WRENCH_PICKUP.tag)
 			.transform(pickaxeOnly())
 			.simpleItem()
 			.register();

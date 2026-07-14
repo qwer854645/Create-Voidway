@@ -1,20 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "X": {
+    "G": {
       "item": "createvoidway:graviton_tube"
     },
-    "Y": {
-      "item": "createvoidway:void_casing"
+    "P": {
+      "item": "create:fluid_pipe"
     },
-    "Z": {
-      "item": "minecraft:barrel"
+    "T": {
+      "item": "create:fluid_tank"
+    },
+    "C": {
+      "item": "createvoidway:void_casing"
     }
   },
   "pattern": [
-    "X",
-    "Z",
-    "Y"
+    " G ",
+    "PTP",
+    " C "
   ],
   "result": {
     "count": 1,

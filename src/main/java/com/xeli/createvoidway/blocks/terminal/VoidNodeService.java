@@ -10,8 +10,10 @@ import com.xeli.createvoidway.items.PortableVoidTerminalBinding;
 import com.xeli.createvoidway.items.RWItems;
 import com.xeli.createvoidway.networking.packets.PortableVoidTerminalListPacket;
 import com.xeli.createvoidway.networking.packets.VoidNodeListPacket;
+import com.xeli.createvoidway.networking.packets.VoidNodePlayerListPacket;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -25,8 +27,11 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public final class VoidNodeService {
 
@@ -38,6 +43,35 @@ public final class VoidNodeService {
 			List<VoidNodeEntry> nodes = VoidNodeDiscovery.listNodes(level, terminal.getNetworkKey(), terminal.getBlockPos());
 			PacketDistributor.sendToPlayer(player, new VoidNodeListPacket(terminal.getBlockPos(), nodes));
 		}
+	}
+
+	public static void sendPlayerList(ServerPlayer player, VoidNodeTerminalTileEntity terminal) {
+		if (!(terminal.getLevel() instanceof ServerLevel level))
+			return;
+
+		ResourceLocation terminalDimension = WorldHelper.getDimensionID(level);
+		BlockPos terminalPos = terminal.getBlockPos();
+
+		Optional<GlobalPos> deathLocation = player.getLastDeathLocation();
+		boolean hasDeathLocation = deathLocation.isPresent();
+		int deathDistance = deathLocation
+				.map(pos -> computeDistanceBlocks(level, terminalDimension, terminalPos, pos.dimension().location(), pos.pos()))
+				.orElse(VoidTerminalPlayerEntry.DISTANCE_OTHER_DIMENSION);
+
+		List<VoidTerminalPlayerEntry> players = new ArrayList<>();
+		for (ServerPlayer online : player.server.getPlayerList().getPlayers()) {
+			if (online.getUUID().equals(player.getUUID()))
+				continue;
+			ResourceLocation dimension = WorldHelper.getDimensionID(online.level());
+			int distance = computeDistanceBlocks(level, terminalDimension, terminalPos, dimension,
+					online.blockPosition());
+			players.add(new VoidTerminalPlayerEntry(online.getUUID(), online.getGameProfile().getName(), dimension,
+					distance));
+		}
+
+		players.sort(Comparator.comparing(VoidTerminalPlayerEntry::displayName, String.CASE_INSENSITIVE_ORDER));
+		PacketDistributor.sendToPlayer(player,
+				new VoidNodePlayerListPacket(terminal.getBlockPos(), hasDeathLocation, deathDistance, players));
 	}
 
 	public static void sendPortableNodeList(ServerPlayer player, InteractionHand hand, NetworkKey networkKey) {
@@ -54,7 +88,7 @@ public final class VoidNodeService {
 		ItemStack stack = player.getItemInHand(hand);
 		if (!stack.is(RWItems.PORTABLE_VOID_TERMINAL.get()))
 			return false;
-		if (!terminal.canOperate() || !terminal.getLink().canInteract(player))
+		if (!ensureCanOperate(player, terminal))
 			return false;
 
 		NetworkKey networkKey = terminal.getNetworkKey();
@@ -71,13 +105,15 @@ public final class VoidNodeService {
 
 	public static boolean renameNode(ServerPlayer player, BlockPos terminalPos, ResourceLocation targetDimension,
 			BlockPos targetPos, String newName) {
-		ServerLevel terminalLevel = player.serverLevel();
-		if (!(terminalLevel.getBlockEntity(terminalPos) instanceof VoidNodeTerminalTileEntity terminal))
+		VoidNodeTerminalTileEntity terminal = resolveTerminal(player.serverLevel(), terminalPos);
+		if (terminal == null)
 			return false;
-		if (!terminal.canOperate() || !terminal.getLink().canInteract(player))
+		if (!ensureCanOperate(player, terminal))
 			return false;
-		if (!isSameNetwork(player.server, terminal.getNetworkKey(), targetDimension, targetPos))
+		if (!isSameNetwork(player.server, terminal.getNetworkKey(), targetDimension, targetPos)) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.invalid_target"), true);
 			return false;
+		}
 
 		VoidwayMod.VOID_NODE_NAMES_DATA.setName(targetDimension, targetPos, newName);
 		sendNodeList(player, terminal);
@@ -89,20 +125,19 @@ public final class VoidNodeService {
 		VoidNodeTerminalTileEntity terminal = resolveTerminal(player.serverLevel(), terminalPos);
 		if (terminal == null)
 			return false;
-		if (!terminal.canOperate() || !terminal.getLink().canInteract(player))
+		if (!canInitiateSharedTeleport(player, terminal))
 			return false;
-		if (terminal.isTeleportOnCooldown()) {
-			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.teleport_cooldown"), true);
-			return false;
-		}
 
 		ResourceLocation terminalDimension = WorldHelper.getDimensionID(terminal.getLevel());
-		if (terminalDimension.equals(targetDimension) && terminalPos.equals(targetPos)) {
+		BlockPos sourcePos = terminal.getBlockPos();
+		if (terminalDimension.equals(targetDimension) && sourcePos.equals(targetPos)) {
 			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.cannot_teleport_self"), true);
 			return false;
 		}
-		if (!isSameNetwork(player.server, terminal.getNetworkKey(), targetDimension, targetPos))
+		if (!isSameNetwork(player.server, terminal.getNetworkKey(), targetDimension, targetPos)) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.invalid_target"), true);
 			return false;
+		}
 
 		ServerLevel targetLevel = player.server.getLevel(ResourceKey.create(Registries.DIMENSION, targetDimension));
 		if (targetLevel == null) {
@@ -131,6 +166,105 @@ public final class VoidNodeService {
 		return true;
 	}
 
+	public static boolean teleportToDeath(ServerPlayer player, BlockPos terminalPos) {
+		VoidNodeTerminalTileEntity terminal = resolveTerminal(player.serverLevel(), terminalPos);
+		if (terminal == null)
+			return false;
+		if (!canInitiateSharedTeleport(player, terminal))
+			return false;
+
+		Optional<GlobalPos> deathLocation = player.getLastDeathLocation();
+		if (deathLocation.isEmpty()) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.no_death_location"), true);
+			return false;
+		}
+
+		GlobalPos death = deathLocation.get();
+		ServerLevel targetLevel = player.server.getLevel(death.dimension());
+		if (targetLevel == null) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.dimension_unavailable"), true);
+			return false;
+		}
+
+		if (!drainTeleportFluid(terminal, player))
+			return false;
+
+		Vec3 target = VoidTerminalTeleportLanding.findTeleportPos(targetLevel, death.pos(), player);
+		player.teleportTo(targetLevel, target.x, target.y, target.z, java.util.Collections.emptySet(),
+				player.getYRot(), player.getXRot());
+		VoidwaySableCompat.inheritSubLevelVelocity(targetLevel, player, target);
+		targetLevel.playSound(null, death.pos(), net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT,
+				net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1f);
+		return true;
+	}
+
+	public static boolean teleportToPlayer(ServerPlayer player, BlockPos terminalPos, UUID targetPlayerUuid) {
+		VoidNodeTerminalTileEntity terminal = resolveTerminal(player.serverLevel(), terminalPos);
+		if (terminal == null)
+			return false;
+		if (!canInitiateSharedTeleport(player, terminal))
+			return false;
+		if (player.getUUID().equals(targetPlayerUuid)) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.cannot_teleport_self"), true);
+			return false;
+		}
+
+		ServerPlayer targetPlayer = player.server.getPlayerList().getPlayer(targetPlayerUuid);
+		if (targetPlayer == null) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.player_unavailable"), true);
+			return false;
+		}
+
+		ServerLevel targetLevel = targetPlayer.serverLevel();
+		if (!drainTeleportFluid(terminal, player))
+			return false;
+
+		Vec3 target = VoidTerminalTeleportLanding.findTeleportPos(targetLevel, targetPlayer.blockPosition(), player);
+		player.teleportTo(targetLevel, target.x, target.y, target.z, java.util.Collections.emptySet(),
+				player.getYRot(), player.getXRot());
+		VoidwaySableCompat.inheritSubLevelVelocity(targetLevel, player, target);
+		targetLevel.playSound(null, targetPlayer.blockPosition(), net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT,
+				net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1f);
+		return true;
+	}
+
+	/** Teleports: any player may use an operational terminal. */
+	private static boolean canInitiateSharedTeleport(ServerPlayer player, VoidNodeTerminalTileEntity terminal) {
+		if (!ensureCanOperate(player, terminal))
+			return false;
+		if (terminal.isTeleportOnCooldown()) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.teleport_cooldown"), true);
+			return false;
+		}
+		return true;
+	}
+
+	private static boolean ensureCanOperate(ServerPlayer player, VoidNodeTerminalTileEntity terminal) {
+		if (!terminal.canOperate()) {
+			player.displayClientMessage(Component.translatable("createvoidway.portable_void_terminal.terminal_unavailable"),
+					true);
+			return false;
+		}
+		return true;
+	}
+
+	private static boolean drainTeleportFluid(VoidNodeTerminalTileEntity terminal, ServerPlayer player) {
+		int cost = VoidwayConfig.getVoidNodeTerminalTeleportFluidCostMb();
+		if (terminal.getFluidTank().getFluidAmount() < cost) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.insufficient_fluid"), true);
+			return false;
+		}
+		terminal.getFluidTank().drain(cost, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+		return true;
+	}
+
+	private static int computeDistanceBlocks(ServerLevel level, ResourceLocation fromDimension, BlockPos fromPos,
+			ResourceLocation toDimension, BlockPos toPos) {
+		if (!fromDimension.equals(toDimension))
+			return VoidTerminalPlayerEntry.DISTANCE_OTHER_DIMENSION;
+		return VoidNodeDiscovery.distanceBlocks(level, fromPos, toPos);
+	}
+
 	public static boolean teleportViaPortable(ServerPlayer player, InteractionHand hand, NetworkKey networkKey,
 			ResourceLocation targetDimension, BlockPos targetPos) {
 		ItemStack stack = player.getItemInHand(hand);
@@ -143,14 +277,10 @@ public final class VoidNodeService {
 			player.displayClientMessage(Component.translatable("createvoidway.portable_void_terminal.unbound"), true);
 			return false;
 		}
-		if (!PortableVoidTerminalBinding.canInteract(player, networkKey)) {
-			player.displayClientMessage(Component.translatable("createvoidway.portable_void_terminal.frequency_denied"),
-					true);
+		if (!isSameNetwork(player.server, networkKey, targetDimension, targetPos)) {
+			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.invalid_target"), true);
 			return false;
 		}
-
-		if (!isSameNetwork(player.server, networkKey, targetDimension, targetPos))
-			return false;
 
 		ServerLevel targetLevel = player.server.getLevel(ResourceKey.create(Registries.DIMENSION, targetDimension));
 		if (targetLevel == null) {
@@ -185,6 +315,7 @@ public final class VoidNodeService {
 	}
 
 	private static boolean teleportPlayerToTerminal(ServerPlayer player, ServerLevel targetLevel, BlockPos targetPos) {
+		targetLevel.getChunkAt(targetPos);
 		BlockState targetState = targetLevel.getBlockState(targetPos);
 		if (!targetState.is(RWBlocks.VOID_NODE_TERMINAL.get())) {
 			player.displayClientMessage(Component.translatable("createvoidway.void_node_terminal.invalid_target"), true);
@@ -200,6 +331,7 @@ public final class VoidNodeService {
 
 	@Nullable
 	public static VoidNodeTerminalTileEntity resolveTerminal(ServerLevel level, BlockPos pos) {
+		level.getChunkAt(pos);
 		BlockPos basePos = VoidNodeTerminalMultiblock.getBasePos(level, pos);
 		if (basePos == null)
 			basePos = pos;
@@ -213,6 +345,7 @@ public final class VoidNodeService {
 		ServerLevel level = server.getLevel(ResourceKey.create(Registries.DIMENSION, targetDimension));
 		if (level == null)
 			return false;
+		level.getChunkAt(targetPos);
 		VoidLinkBehaviour targetLink = VoidNodeDiscovery.resolveLink(level, targetPos);
 		if (targetLink == null)
 			return false;

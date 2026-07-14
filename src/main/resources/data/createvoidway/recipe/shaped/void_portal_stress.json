@@ -1,24 +1,26 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "X": {
+    "G": {
       "item": "createvoidway:graviton_tube"
     },
-    "Y": {
+    "S": {
+      "item": "create:shaft"
+    },
+    "C": {
       "item": "createvoidway:void_casing"
     },
-    "Z": {
-      "item": "create:shaft"
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "F": {
+      "item": "createvoidway:void_portal_frame"
     }
   },
   "pattern": [
-    "R",
-    "X",
-    "Y",
-    "Z"
+    " G ",
+    "SCS",
+    "FPF"
   ],
   "result": {
     "count": 1,

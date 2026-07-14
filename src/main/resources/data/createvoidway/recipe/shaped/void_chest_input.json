@@ -1,20 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "M": {
+    "X": {
       "item": "createvoidway:void_chest_output"
-    },
-    "C": {
-      "item": "minecraft:copper_ingot"
     },
     "H": {
       "item": "minecraft:hopper"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "S": {
+      "item": "create:shaft"
     }
   },
   "pattern": [
-    "C",
-    "M",
-    "H"
+    " H ",
+    "BXB",
+    " S "
   ],
   "result": {
     "count": 1,

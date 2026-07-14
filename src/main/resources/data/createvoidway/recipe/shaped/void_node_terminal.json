@@ -4,17 +4,26 @@
     "A": {
       "item": "createvoidway:polished_amethyst"
     },
+    "G": {
+      "item": "createvoidway:graviton_tube"
+    },
+    "L": {
+      "item": "createvoidway:void_teleport_link"
+    },
     "C": {
       "item": "createvoidway:void_casing"
     },
-    "T": {
-      "item": "createvoidway:void_teleport_link"
+    "S": {
+      "item": "createvoidway:void_steel_sheet"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
     }
   },
   "pattern": [
-    "A",
-    "T",
-    "C"
+    "AGA",
+    "LCL",
+    "SPS"
   ],
   "result": {
     "count": 1,

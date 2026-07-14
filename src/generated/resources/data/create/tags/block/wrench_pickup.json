@@ -1,5 +1,6 @@
 {
   "values": [
+    "createvoidway:void_steel_block",
     "createvoidway:void_steel_bars",
     "createvoidway:void_casing",
     "createvoidway:void_chest_output",
@@ -10,6 +11,8 @@
     "createvoidway:void_portal_fluid",
     "createvoidway:void_portal_stress",
     "createvoidway:void_portal_connector",
-    "createvoidway:void_node_terminal"
+    "createvoidway:void_node_terminal",
+    "createvoidway:amethyst_tiles",
+    "createvoidway:small_amethyst_tiles"
   ]
 }

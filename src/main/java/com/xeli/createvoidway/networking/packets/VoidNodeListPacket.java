@@ -3,13 +3,12 @@ package com.xeli.createvoidway.networking.packets;
 import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeEntry;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalContainer;
-import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
@@ -28,19 +27,18 @@ public record VoidNodeListPacket(BlockPos terminalPos, List<VoidNodeEntry> nodes
 
 	public static void handle(VoidNodeListPacket packet, IPayloadContext context) {
 		context.enqueueWork(() -> {
-			if (context.player() == null)
+			if (!FMLEnvironment.dist.isClient())
 				return;
-			if (context.player().containerMenu instanceof VoidNodeTerminalContainer menu
-					&& menu.matchesTerminal(packet.terminalPos())) {
-				menu.updateNodes(packet.nodes());
-				PENDING.remove(packet.terminalPos());
-				if (Minecraft.getInstance().screen instanceof VoidNodeTerminalScreen screen
-						&& screen.getMenu() == menu)
-					screen.onNodesUpdated();
-				return;
-			}
-			PENDING.put(packet.terminalPos(), packet.nodes());
+			VoidNodeClientHandlers.onNodeList(packet);
 		});
+	}
+
+	static void storePending(VoidNodeListPacket packet) {
+		PENDING.put(packet.terminalPos(), packet.nodes());
+	}
+
+	static void clearPending(BlockPos terminalPos) {
+		PENDING.remove(terminalPos);
 	}
 
 	public static void applyPending(VoidNodeTerminalContainer menu) {

@@ -13,6 +13,7 @@ import com.xeli.createvoidway.blocks.teleport.VoidTeleportNetworkHandler;
 import com.xeli.createvoidway.blocks.portal.VoidPortalNetworkHandler;
 import com.xeli.createvoidway.blocks.portal.VoidPortalTrackProvider;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeNamesData;
+import com.xeli.createvoidway.blocks.terminal.VoidTerminalNetworkData;
 import com.xeli.createvoidway.blocks.terminal.VoidTerminalNetworkHandler;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTank;
@@ -63,6 +64,7 @@ public class VoidwayMod {
 	public static VoidTanksData VOID_TANKS_DATA;
 	public static VoidBatteryData VOID_BATTERIES_DATA;
 	public static VoidNodeNamesData VOID_NODE_NAMES_DATA;
+	public static VoidTerminalNetworkData VOID_TERMINAL_NETWORK_DATA;
 
 	public VoidwayMod(IEventBus modEventBus, ModContainer modContainer) {
 		modContainer.registerConfig(ModConfig.Type.COMMON, VoidwayConfig.SPEC);

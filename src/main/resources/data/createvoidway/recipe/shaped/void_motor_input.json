@@ -4,17 +4,20 @@
     "M": {
       "item": "createvoidway:void_motor_output"
     },
-    "C": {
-      "item": "minecraft:copper_ingot"
+    "P": {
+      "item": "create:mechanical_pump"
     },
-    "B": {
-      "item": "minecraft:bucket"
+    "T": {
+      "item": "create:fluid_tank"
+    },
+    "I": {
+      "item": "create:copper_sheet"
     }
   },
   "pattern": [
-    "C",
-    "M",
-    "B"
+    " P ",
+    "IMI",
+    " T "
   ],
   "result": {
     "count": 1,

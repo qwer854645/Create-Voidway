@@ -4,17 +4,23 @@
     "A": {
       "item": "createvoidway:polished_amethyst"
     },
+    "F": {
+      "item": "createvoidway:void_portal_frame"
+    },
     "C": {
       "item": "createvoidway:void_casing"
     },
-    "F": {
-      "item": "createvoidway:void_portal_frame"
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "G": {
+      "item": "createvoidway:graviton_tube"
     }
   },
   "pattern": [
-    "A",
-    "F",
-    "C"
+    "AGA",
+    "FCF",
+    " E "
   ],
   "result": {
     "count": 1,

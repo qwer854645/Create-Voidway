@@ -18,6 +18,10 @@
     "createvoidway:void_teleport_pad",
     "createvoidway:void_node_terminal",
     "createvoidway:void_node_terminal_top",
+    "createvoidway:void_portal_frame",
+    "createvoidway:void_portal_fluid",
+    "createvoidway:void_portal_stress",
+    "createvoidway:void_portal_connector",
     "createvoidway:lshaped_gearbox",
     "createvoidway:amethyst_tiles",
     "createvoidway:small_amethyst_tiles"

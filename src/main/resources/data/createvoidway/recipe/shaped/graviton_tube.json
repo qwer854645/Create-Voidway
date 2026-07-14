@@ -1,19 +1,22 @@
 {
-    "type":  "minecraft:crafting_shaped",
-    "key":  {
-                "X":  {
-                          "item":  "createvoidway:polished_amethyst"
-                      },
-                "Y":  {
-                          "item":  "createvoidway:void_steel_sheet"
-                      }
-            },
-    "pattern":  [
-                    "X",
-                    "Y"
-                ],
-    "result":  {
-                   "count":  1,
-                   "id":  "createvoidway:graviton_tube"
-               }
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "createvoidway:polished_amethyst"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "S": {
+      "item": "createvoidway:void_steel_sheet"
+    }
+  },
+  "pattern": [
+    " A ",
+    "GSG"
+  ],
+  "result": {
+    "count": 2,
+    "id": "createvoidway:graviton_tube"
+  }
 }

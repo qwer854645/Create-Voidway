@@ -16,7 +16,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -101,16 +100,6 @@ public class VoidNodeTerminalBlock extends HorizontalDirectionalBlock
 		if (!state.is(newState.getBlock()) && !level.isClientSide)
 			VoidNodeTerminalMultiblock.removeTop(level, pos);
 		super.onRemove(state, level, pos, newState, moving);
-	}
-
-	@Override
-	public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer,
-			net.minecraft.world.item.ItemStack stack) {
-		if (!level.isClientSide()) {
-			VoidLinkBehaviour behaviour = BlockEntityBehaviour.get(level, pos, VoidLinkBehaviour.TYPE);
-			if (behaviour != null && placer instanceof net.minecraft.world.entity.player.Player player)
-				behaviour.setOwner(player.getGameProfile());
-		}
 	}
 
 	@Override

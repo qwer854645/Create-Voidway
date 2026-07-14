@@ -5,6 +5,7 @@ import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryData;
 import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestInventoriesData;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTanksData;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeNamesData;
+import com.xeli.createvoidway.blocks.terminal.VoidTerminalNetworkData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -38,6 +39,10 @@ public class CommonEvents {
 
 		VoidwayMod.VOID_NODE_NAMES_DATA = dataStorage
 				.computeIfAbsent(new SavedData.Factory<>(VoidNodeNamesData::new, VoidNodeNamesData::load), "VoidNodeNames");
+
+		VoidwayMod.VOID_TERMINAL_NETWORK_DATA = dataStorage
+				.computeIfAbsent(new SavedData.Factory<>(VoidTerminalNetworkData::new, VoidTerminalNetworkData::load),
+						"VoidTerminalNetwork");
 	}
 
 	public static void onUnload(LevelEvent.Unload event) {

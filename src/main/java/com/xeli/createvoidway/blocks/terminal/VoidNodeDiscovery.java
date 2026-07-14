@@ -25,24 +25,46 @@ public final class VoidNodeDiscovery {
 
 	public static List<VoidNodeNetworkIndex.DimensionalBlockPos> collectValidTerminals(ServerLevel terminalLevel,
 			NetworkKey key) {
+		return collectValidTerminals(terminalLevel, key, false);
+	}
+
+	/**
+	 * @param forceLoad when true, loads remote chunks to validate membership (player GUI / teleport).
+	 *                  when false, trusts persisted unloaded positions for stress accounting without chunk I/O.
+	 */
+	public static List<VoidNodeNetworkIndex.DimensionalBlockPos> collectValidTerminals(ServerLevel terminalLevel,
+			NetworkKey key, boolean forceLoad) {
 		List<VoidNodeNetworkIndex.DimensionalBlockPos> terminals = new ArrayList<>();
 
-		for (VoidNodeNetworkIndex.DimensionalBlockPos node : VoidNodeNetworkIndex.collectPositions(key)) {
+		for (VoidNodeNetworkIndex.DimensionalBlockPos node : VoidNodeNetworkIndex.collectPositions(terminalLevel, key)) {
 			ServerLevel level = terminalLevel.getServer()
 					.getLevel(ResourceKey.create(Registries.DIMENSION, node.dimension()));
-			if (level == null || !level.hasChunkAt(node.pos()))
+			if (level == null)
+				continue;
+
+			if (!forceLoad && !level.hasChunkAt(node.pos())) {
+				terminals.add(node);
+				continue;
+			}
+
+			if (forceLoad)
+				level.getChunkAt(node.pos());
+			else if (!level.hasChunkAt(node.pos()))
 				continue;
 
 			VoidLinkBehaviour link = resolveLink(level, node.pos());
-			if (link == null || !link.getNetworkKey().equals(key))
+			if (link == null || !link.getNetworkKey().equals(key)
+					|| link.getFrequencyStack(true).isEmpty() || link.getFrequencyStack(false).isEmpty()) {
+				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
 				continue;
-			if (link.getFrequencyStack(true).isEmpty() || link.getFrequencyStack(false).isEmpty())
-				continue;
+			}
 
 			BlockState state = level.getBlockState(node.pos());
 			VoidNodeType type = VoidNodeType.fromBlockState(state);
-			if (!VoidNodeType.isTerminalDestination(type))
+			if (!VoidNodeType.isTerminalDestination(type)) {
+				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
 				continue;
+			}
 
 			terminals.add(node);
 		}
@@ -55,7 +77,7 @@ public final class VoidNodeDiscovery {
 		VoidNodeNamesData names = VoidwayMod.VOID_NODE_NAMES_DATA;
 		List<VoidNodeEntry> entries = new ArrayList<>();
 
-		for (VoidNodeNetworkIndex.DimensionalBlockPos node : collectValidTerminals(terminalLevel, key)) {
+		for (VoidNodeNetworkIndex.DimensionalBlockPos node : collectValidTerminals(terminalLevel, key, true)) {
 			ServerLevel level = terminalLevel.getServer()
 					.getLevel(ResourceKey.create(Registries.DIMENSION, node.dimension()));
 			BlockState state = level != null ? level.getBlockState(node.pos()) : null;

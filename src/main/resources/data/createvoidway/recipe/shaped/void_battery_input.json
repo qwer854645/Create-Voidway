@@ -1,20 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "M": {
+    "B": {
       "item": "createvoidway:void_battery_output"
     },
-    "C": {
-      "item": "minecraft:copper_ingot"
+    "E": {
+      "item": "create:electron_tube"
     },
-    "R": {
-      "item": "minecraft:redstone"
+    "I": {
+      "item": "create:copper_sheet"
+    },
+    "G": {
+      "item": "create:golden_sheet"
     }
   },
   "pattern": [
-    "C",
-    "M",
-    "R"
+    " E ",
+    "IBI",
+    " G "
   ],
   "result": {
     "count": 1,

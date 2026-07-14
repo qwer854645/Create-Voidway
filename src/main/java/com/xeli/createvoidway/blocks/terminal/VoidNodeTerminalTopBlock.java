@@ -1,14 +1,17 @@
 package com.xeli.createvoidway.blocks.terminal;
 
 import com.mojang.serialization.MapCodec;
+import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.xeli.createvoidway.blocks.RWBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -22,7 +25,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class VoidNodeTerminalTopBlock extends HorizontalDirectionalBlock {
+public class VoidNodeTerminalTopBlock extends HorizontalDirectionalBlock implements IWrenchable {
 
 	public static final MapCodec<VoidNodeTerminalTopBlock> CODEC = simpleCodec(VoidNodeTerminalTopBlock::new);
 	private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 16, 15);
@@ -79,6 +82,36 @@ public class VoidNodeTerminalTopBlock extends HorizontalDirectionalBlock {
 				level.destroyBlock(below, true);
 		}
 		super.onRemove(state, level, pos, newState, moving);
+	}
+
+	@Override
+	public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+		return redirectWrench(context, false);
+	}
+
+	@Override
+	public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+		return redirectWrench(context, true);
+	}
+
+	private InteractionResult redirectWrench(UseOnContext context, boolean sneak) {
+		Level level = context.getLevel();
+		BlockPos basePos = context.getClickedPos().below();
+		BlockState baseState = level.getBlockState(basePos);
+		if (!(baseState.getBlock() instanceof IWrenchable wrenchable))
+			return InteractionResult.PASS;
+
+		UseOnContext redirected = new UseOnContext(level, context.getPlayer(), context.getHand(),
+				context.getItemInHand(),
+				new BlockHitResult(context.getClickLocation(), context.getClickedFace(), basePos, context.isInside()));
+		InteractionResult result = sneak ? wrenchable.onSneakWrenched(baseState, redirected)
+				: wrenchable.onWrenched(baseState, redirected);
+		if (result.consumesAction() && !sneak && !level.isClientSide) {
+			BlockState updatedBase = level.getBlockState(basePos);
+			if (VoidNodeTerminalMultiblock.isBase(updatedBase))
+				VoidNodeTerminalMultiblock.placeTop(level, basePos, updatedBase.getValue(FACING));
+		}
+		return result;
 	}
 
 	@Override
