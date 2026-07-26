@@ -23,6 +23,13 @@ public interface VoidTileRenderer<T extends SmartBlockEntity> {
 		if (ExitHangGuard.shouldSkipRenderLoopWork() || te.getLevel() == null)
 			return;
 		VoidLinkRenderer.renderOnTileEntity(te, partialTicks, ms, buffer, light, overlay, getSkullModelBase());
+		renderPortalOverlay(te, ms, buffer);
+	}
+
+	/** Draws end-portal frames for every direction accepted by {@link #shouldRenderFrame}. */
+	default void renderPortalOverlay(T te, PoseStack ms, MultiBufferSource buffer) {
+		if (ExitHangGuard.shouldSkipRenderLoopWork() || te.getLevel() == null)
+			return;
 		renderPortal(te, ms.last().pose(), buffer.getBuffer(RenderType.endPortal()));
 	}
 

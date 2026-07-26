@@ -1,14 +1,15 @@
 package com.xeli.createvoidway.blocks.voidtypes.tank;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.AllPartialModels;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.xeli.createvoidway.blocks.VoidShaftBuffers;
 import com.xeli.createvoidway.blocks.voidtypes.VoidPortalOverlay;
 import com.xeli.createvoidway.blocks.voidtypes.VoidTileRenderer;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.platform.CatnipServices;
-import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.platform.services.ModFluidHelper;
+import net.createmod.catnip.render.FluidRenderHelper;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.model.SkullModel;
 import net.minecraft.client.model.SkullModelBase;
@@ -16,12 +17,18 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> extends KineticBlockEntityRenderer<T>
 		implements VoidTileRenderer<T> {
+
+	private static final float FLUID_MIN = .125F;
+	private static final float FLUID_MAX = .875F;
+	private static final float FLUID_Y_BASE = .25F;
+	private static final float FLUID_Y_RANGE = .5F;
 
 	private final SkullModelBase skullModelBase;
 
@@ -35,16 +42,33 @@ public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> exte
 			int overlay) {
 		renderVoid(te, partialTicks, ms, buffer, light, overlay);
 
-		VoidTank tank = te.getFluidStorage();
-		if (!te.isClosed() && !tank.isEmpty()) {
-			CatnipServices.FLUID_RENDERER.renderFluidBox(
-					tank.getFluid().getFluid().defaultFluidState(),
-					.125F, .25F, .125F, .875F, .25F + 0.5F * tank.getFluidAmount() / tank.getCapacity(), .875F,
-					buffer, ms, light, false, true);
-		}
+		if (!te.isClosed() && !te.getFluidStorage().isEmpty())
+			renderFluidLevel(te, ms, buffer, light);
 
 		if (te.hasShaftConnection())
 			renderBottomShaft(te, ms, buffer, light);
+	}
+
+	/**
+	 * Top surface only — side windows must always show end-portal, never fluid sides
+	 * (end-portal layers don't occlude translucent fluid reliably).
+	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private void renderFluidLevel(T te, PoseStack ms, MultiBufferSource buffer, int light) {
+		VoidTank tank = te.getFluidStorage();
+		FluidStack stack = tank.getFluid();
+		float yMax = FLUID_Y_BASE + FLUID_Y_RANGE * tank.getFluidAmount() / tank.getCapacity();
+
+		ModFluidHelper helper = CatnipServices.FLUID_HELPER;
+		TextureAtlasSprite sprite = helper.getStillTextureOrMissing(stack);
+		int color = helper.getColor(stack, null, null);
+		int blockLight = Math.max((light >> 4) & 15, helper.getLuminosity(stack));
+		int packedLight = (light & 0xF00000) | (blockLight << 4);
+
+		VertexConsumer consumer = FluidRenderHelper.getFluidBuilder(buffer);
+		FluidRenderHelper.renderStillTiledFace(
+				Direction.UP, FLUID_MIN, FLUID_MIN, FLUID_MAX, FLUID_MAX, yMax,
+				consumer, ms, packedLight, color, sprite);
 	}
 
 	private void renderBottomShaft(T be, PoseStack ms, MultiBufferSource buffer, int light) {
@@ -84,7 +108,8 @@ public class AbstractVoidTankRenderer<T extends AbstractVoidTankTileEntity> exte
 	public boolean shouldRenderFrame(T te, Direction direction) {
 		if (te.isClosed())
 			return false;
-		return VoidPortalOverlay.isUpFace(direction) || direction.getAxis().isHorizontal();
+		// Four side windows always get end-portal; top opening too (Create Utilities parity).
+		return direction.getAxis().isHorizontal() || VoidPortalOverlay.isUpFace(direction);
 	}
 
 	@Override

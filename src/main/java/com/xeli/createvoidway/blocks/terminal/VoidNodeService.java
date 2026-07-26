@@ -163,6 +163,7 @@ public final class VoidNodeService {
 
 		targetLevel.playSound(null, targetPos, net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT,
 				net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1f);
+		closeTerminalUi(player);
 		return true;
 	}
 
@@ -195,6 +196,7 @@ public final class VoidNodeService {
 		VoidwaySableCompat.inheritSubLevelVelocity(targetLevel, player, target);
 		targetLevel.playSound(null, death.pos(), net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT,
 				net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1f);
+		closeTerminalUi(player);
 		return true;
 	}
 
@@ -225,6 +227,7 @@ public final class VoidNodeService {
 		VoidwaySableCompat.inheritSubLevelVelocity(targetLevel, player, target);
 		targetLevel.playSound(null, targetPlayer.blockPosition(), net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT,
 				net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1f);
+		closeTerminalUi(player);
 		return true;
 	}
 
@@ -311,7 +314,12 @@ public final class VoidNodeService {
 		targetTerminal.startPortableTeleportCooldown();
 		targetLevel.playSound(null, targetPos, net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT,
 				net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1f);
+		closeTerminalUi(player);
 		return true;
+	}
+
+	private static void closeTerminalUi(ServerPlayer player) {
+		player.closeContainer();
 	}
 
 	private static boolean teleportPlayerToTerminal(ServerPlayer player, ServerLevel targetLevel, BlockPos targetPos) {
