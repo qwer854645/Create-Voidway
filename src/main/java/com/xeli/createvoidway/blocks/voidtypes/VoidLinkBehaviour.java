@@ -175,7 +175,7 @@ public class VoidLinkBehaviour extends BlockEntityBehaviour implements Clipboard
 	@Override
 	public boolean readFromClipboard(HolderLookup.Provider registries, CompoundTag nbt, Player player, Direction side, boolean simulate) {
 
-		if (!isOwner(player)) return false;
+		if (!canInteract(player)) return false;
 		if (simulate) return true;
 
 		setFrequency(true, nbt.contains("First", Tag.TAG_COMPOUND)

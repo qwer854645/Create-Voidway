@@ -25,9 +25,15 @@ public class VoidMotorLinkBehaviour extends com.xeli.createvoidway.blocks.voidty
 	}
 
 	@Override
-	public void unload() {
+	public void destroy() {
 		if (!getWorld().isClientSide)
 			getHandler().removeFromNetwork(getWorld(), this);
+		super.destroy();
+	}
+
+	@Override
+	public void unload() {
+		// Keep indexed while chunk is unloaded so cross-chunk partners stay visible this session.
 		super.unload();
 	}
 

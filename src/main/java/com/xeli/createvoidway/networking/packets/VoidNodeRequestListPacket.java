@@ -5,7 +5,6 @@ import com.xeli.createvoidway.blocks.terminal.VoidNodeService;
 import com.xeli.createvoidway.blocks.terminal.VoidNodeTerminalTileEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,20 +21,12 @@ public record VoidNodeRequestListPacket(BlockPos terminalPos) implements CustomP
 		context.enqueueWork(() -> {
 			if (!(context.player() instanceof ServerPlayer player))
 				return;
-			VoidNodeTerminalTileEntity terminal = VoidNodeService.resolveTerminal(player.serverLevel(),
+			VoidNodeTerminalTileEntity terminal = VoidNodeService.resolveAuthorizedTerminal(player,
 					packet.terminalPos());
 			if (terminal == null)
 				return;
-			if (!terminal.canOperate()) {
-				player.displayClientMessage(
-						Component.translatable("createvoidway.portable_void_terminal.terminal_unavailable"), true);
-				return;
-			}
-			if (terminal.isTeleportOnCooldown()) {
-				player.displayClientMessage(
-						Component.translatable("createvoidway.void_node_terminal.teleport_cooldown"), true);
-				return;
-			}
+			// Listing must not require continuous operate/cooldown checks — fluid drains every tick
+			// while the GUI is open, which previously aborted refreshes and left an empty node list.
 			VoidNodeService.sendNodeList(player, terminal);
 		});
 	}

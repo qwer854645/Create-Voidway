@@ -47,6 +47,10 @@ public record VoidNodeListPacket(BlockPos terminalPos, List<VoidNodeEntry> nodes
 			menu.updateNodes(pending);
 	}
 
+	public static void clearAllPending() {
+		PENDING.clear();
+	}
+
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;

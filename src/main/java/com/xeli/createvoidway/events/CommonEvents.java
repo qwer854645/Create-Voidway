@@ -1,16 +1,11 @@
 package com.xeli.createvoidway.events;
 
 import com.xeli.createvoidway.VoidwayMod;
-import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBatteryData;
-import com.xeli.createvoidway.blocks.voidtypes.chest.VoidChestInventoriesData;
-import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTanksData;
-import com.xeli.createvoidway.blocks.terminal.VoidNodeNamesData;
-import com.xeli.createvoidway.blocks.terminal.VoidTerminalNetworkData;
+import com.xeli.createvoidway.VoidwaySavedData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 public class CommonEvents {
 
@@ -26,23 +21,7 @@ public class CommonEvents {
 		if (server == null)
 			return;
 
-		DimensionDataStorage dataStorage = server.overworld().getDataStorage();
-
-		VoidwayMod.VOID_CHEST_INVENTORIES_DATA = dataStorage
-				.computeIfAbsent(new SavedData.Factory<>(VoidChestInventoriesData::new, VoidChestInventoriesData::load), "VoidChestInventories");
-
-		VoidwayMod.VOID_TANKS_DATA = dataStorage
-				.computeIfAbsent(new SavedData.Factory<>(VoidTanksData::new, VoidTanksData::load), "VoidTanks");
-
-		VoidwayMod.VOID_BATTERIES_DATA = dataStorage
-				.computeIfAbsent(new SavedData.Factory<>(VoidBatteryData::new, VoidBatteryData::load), "VoidBatteries");
-
-		VoidwayMod.VOID_NODE_NAMES_DATA = dataStorage
-				.computeIfAbsent(new SavedData.Factory<>(VoidNodeNamesData::new, VoidNodeNamesData::load), "VoidNodeNames");
-
-		VoidwayMod.VOID_TERMINAL_NETWORK_DATA = dataStorage
-				.computeIfAbsent(new SavedData.Factory<>(VoidTerminalNetworkData::new, VoidTerminalNetworkData::load),
-						"VoidTerminalNetwork");
+		VoidwaySavedData.ensureLoaded(server);
 	}
 
 	public static void onUnload(LevelEvent.Unload event) {
@@ -51,6 +30,10 @@ public class CommonEvents {
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
+	}
+
+	public static void onServerStopping(ServerStoppingEvent event) {
+		VoidwaySavedData.clearStatics();
 	}
 
 }

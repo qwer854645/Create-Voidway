@@ -2,6 +2,7 @@ package com.xeli.createvoidway.blocks.terminal;
 
 import com.simibubi.create.Create;
 import com.xeli.createvoidway.VoidwayMod;
+import com.xeli.createvoidway.VoidwaySavedData;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
@@ -40,6 +41,7 @@ public class VoidTerminalNetworkHandler {
 	}
 
 	public void addToNetwork(LevelAccessor world, VoidTerminalLinkBehaviour actor) {
+		VoidwaySavedData.ensureLoaded(world);
 		BlockPos pos = actor.getPos();
 		NetworkKey key = actor.getNetworkKey();
 		getNetworkOf(world, actor).add(pos);
@@ -50,6 +52,7 @@ public class VoidTerminalNetworkHandler {
 	}
 
 	public void removeFromNetwork(LevelAccessor world, VoidTerminalLinkBehaviour actor) {
+		VoidwaySavedData.ensureLoaded(world);
 		NetworkKey key = actor.getNetworkKey();
 		BlockPos pos = actor.getPos();
 		Set<BlockPos> network = getNetworkOf(world, actor);
@@ -73,13 +76,23 @@ public class VoidTerminalNetworkHandler {
 			data.removePosition(dimension, pos);
 	}
 
+	/**
+	 * Collects from SavedData and the live in-memory map. Dedicated servers previously
+	 * only read SavedData, so terminals that joined while data was null (or only lived
+	 * in memory) never appeared in the GUI — including the terminal you are standing at.
+	 */
 	public void collectPositions(ServerLevel anyServerLevel, NetworkKey key,
 			BiConsumer<ResourceLocation, BlockPos> consumer) {
+		Set<String> seen = new LinkedHashSet<>();
+		BiConsumer<ResourceLocation, BlockPos> dedupe = (dimension, pos) -> {
+			String id = dimension + "|" + pos.asLong();
+			if (seen.add(id))
+				consumer.accept(dimension, pos);
+		};
+
 		VoidTerminalNetworkData data = VoidwayMod.VOID_TERMINAL_NETWORK_DATA;
-		if (data != null) {
-			data.collectPositions(key, consumer);
-			return;
-		}
+		if (data != null)
+			data.collectPositions(key, dedupe);
 
 		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
 			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
@@ -87,7 +100,7 @@ public class VoidTerminalNetworkHandler {
 				continue;
 			ResourceLocation dimension = dimensionEntry.getKey();
 			for (BlockPos pos : positions)
-				consumer.accept(dimension, pos);
+				dedupe.accept(dimension, pos);
 		}
 	}
 

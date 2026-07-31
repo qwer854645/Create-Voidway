@@ -19,7 +19,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class RWPackets {
 
-	public static final String NETWORK_VERSION = "9";
+	public static final String NETWORK_VERSION = "11";
 
 	private RWPackets() {
 	}

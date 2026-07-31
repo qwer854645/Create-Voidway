@@ -4,6 +4,8 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
 import com.xeli.createvoidway.voidlink.VoidLinkSlot;
+import net.createmod.catnip.levelWrappers.WorldHelper;
+import net.minecraft.server.level.ServerLevel;
 import org.apache.commons.lang3.tuple.Triple;
 
 public class VoidTerminalLinkBehaviour extends VoidLinkBehaviour {
@@ -13,12 +15,17 @@ public class VoidTerminalLinkBehaviour extends VoidLinkBehaviour {
 		super(te, slots);
 	}
 
+	private boolean hasCompleteFrequency() {
+		return !getFrequencyStack(true).isEmpty() && !getFrequencyStack(false).isEmpty();
+	}
+
 	@Override
 	public void initialize() {
 		super.initialize();
 		if (getWorld().isClientSide)
 			return;
-		getHandler().addToNetwork(getWorld(), this);
+		if (hasCompleteFrequency())
+			getHandler().addToNetwork(getWorld(), this);
 	}
 
 	@Override
@@ -30,14 +37,18 @@ public class VoidTerminalLinkBehaviour extends VoidLinkBehaviour {
 
 	@Override
 	public void destroy() {
-		if (!getWorld().isClientSide)
+		if (!getWorld().isClientSide) {
 			getHandler().removeFromNetwork(getWorld(), this);
+			if (getWorld() instanceof ServerLevel serverLevel && VoidwayMod.VOID_NODE_NAMES_DATA != null)
+				VoidwayMod.VOID_NODE_NAMES_DATA.setName(WorldHelper.getDimensionID(serverLevel), getPos(), "");
+		}
 		super.destroy();
 	}
 
 	@Override
 	protected void onJoinNetwork() {
-		getHandler().addToNetwork(getWorld(), this);
+		if (hasCompleteFrequency())
+			getHandler().addToNetwork(getWorld(), this);
 	}
 
 	@Override

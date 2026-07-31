@@ -29,8 +29,10 @@ public class VoidNodeTerminalContainer extends MenuBase<VoidNodeTerminalTileEnti
 
 	public VoidNodeTerminalContainer(MenuType<?> type, int id, Inventory inv, RegistryFriendlyByteBuf extraData) {
 		super(type, id, inv, extraData);
-		com.xeli.createvoidway.networking.packets.VoidNodeListPacket.applyPending(this);
-		VoidNodePlayerListPacket.applyPending(this);
+		if (contentHolder != null) {
+			com.xeli.createvoidway.networking.packets.VoidNodeListPacket.applyPending(this);
+			VoidNodePlayerListPacket.applyPending(this);
+		}
 	}
 
 	public VoidNodeTerminalContainer(MenuType<?> type, int id, Inventory inv, VoidNodeTerminalTileEntity te) {
@@ -83,7 +85,8 @@ public class VoidNodeTerminalContainer extends MenuBase<VoidNodeTerminalTileEnti
 
 	@Override
 	public boolean stillValid(Player player) {
-		return super.stillValid(player);
+		return super.stillValid(player) && contentHolder != null && contentHolder.canOperate()
+				&& !contentHolder.isTeleportOnCooldown();
 	}
 
 	public BlockPos getTerminalPos() {

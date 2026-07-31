@@ -55,6 +55,10 @@ public record PortableVoidTerminalListPacket(InteractionHand hand, NetworkKey ne
 			menu.updateNodes(pending);
 	}
 
+	public static void clearAllPending() {
+		PENDING.clear();
+	}
+
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;

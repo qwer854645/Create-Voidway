@@ -1,7 +1,7 @@
 package com.xeli.createvoidway.networking.packets;
 
-import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.VoidwayClient;
+import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
 import com.xeli.createvoidway.blocks.voidtypes.tank.VoidTank;
 import net.minecraft.client.Minecraft;
@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class VoidTankUpdatePacket implements CustomPacketPayload {
@@ -27,11 +28,14 @@ public class VoidTankUpdatePacket implements CustomPacketPayload {
 
 	private VoidTankUpdatePacket(NetworkKey key, CompoundTag tankTag) {
 		this.key = key;
-		this.tankTag = tankTag;
+		this.tankTag = tankTag != null ? tankTag : new CompoundTag();
 	}
 
 	private VoidTankUpdatePacket(RegistryFriendlyByteBuf buffer) {
-		this(NetworkKey.fromBuffer(buffer), buffer.readNbt());
+		NetworkKey networkKey = NetworkKey.fromBuffer(buffer);
+		CompoundTag tag = buffer.readNbt();
+		this.key = networkKey;
+		this.tankTag = tag != null ? tag : new CompoundTag();
 	}
 
 	private void write(RegistryFriendlyByteBuf buffer) {
@@ -40,9 +44,16 @@ public class VoidTankUpdatePacket implements CustomPacketPayload {
 	}
 
 	public static void handle(VoidTankUpdatePacket packet, IPayloadContext context) {
-		VoidTank tank = new VoidTank(packet.key);
-		tank.readFromNBT(Minecraft.getInstance().level.registryAccess(), packet.tankTag);
-		VoidwayClient.VOID_TANKS.storages.put(packet.key, tank);
+		context.enqueueWork(() -> {
+			if (!FMLEnvironment.dist.isClient())
+				return;
+			var level = Minecraft.getInstance().level;
+			if (level == null)
+				return;
+			VoidTank tank = new VoidTank(packet.key);
+			tank.readFromNBT(level.registryAccess(), packet.tankTag);
+			VoidwayClient.VOID_TANKS.storages.put(packet.key, tank);
+		});
 	}
 
 	@Override

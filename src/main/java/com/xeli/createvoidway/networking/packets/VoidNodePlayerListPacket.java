@@ -50,6 +50,10 @@ public record VoidNodePlayerListPacket(BlockPos terminalPos, boolean hasDeathLoc
 			menu.updatePlayers(pending.hasDeathLocation(), pending.deathDistanceBlocks(), pending.players());
 	}
 
+	public static void clearAllPending() {
+		PENDING.clear();
+	}
+
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;

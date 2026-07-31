@@ -4,7 +4,6 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
 import com.xeli.createvoidway.voidlink.VoidLinkSlot;
-import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Triple;
@@ -26,9 +25,15 @@ public class VoidPortalLinkBehaviour extends VoidLinkBehaviour {
 
 	@Override
 	public void unload() {
+		// Keep portal network membership across chunk unload; permanent detach on destroy / leave.
+		super.unload();
+	}
+
+	@Override
+	public void destroy() {
 		if (!getWorld().isClientSide())
 			getHandler().detachPortalFromNetwork(getWorld(), getPos());
-		super.unload();
+		super.destroy();
 	}
 
 	@Override

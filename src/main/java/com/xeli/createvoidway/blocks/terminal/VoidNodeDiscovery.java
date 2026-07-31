@@ -52,19 +52,8 @@ public final class VoidNodeDiscovery {
 			else if (!level.hasChunkAt(node.pos()))
 				continue;
 
-			VoidLinkBehaviour link = resolveLink(level, node.pos());
-			if (link == null || !link.getNetworkKey().equals(key)
-					|| link.getFrequencyStack(true).isEmpty() || link.getFrequencyStack(false).isEmpty()) {
-				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
+			if (!validateAndRepairMembership(level, node, key, forceLoad))
 				continue;
-			}
-
-			BlockState state = level.getBlockState(node.pos());
-			VoidNodeType type = VoidNodeType.fromBlockState(state);
-			if (!VoidNodeType.isTerminalDestination(type)) {
-				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
-				continue;
-			}
 
 			terminals.add(node);
 		}
@@ -72,26 +61,83 @@ public final class VoidNodeDiscovery {
 		return terminals;
 	}
 
+	/**
+	 * Returns true if {@code node} is a live terminal on {@code key}.
+	 * Soft-repairs index instead of wiping on transient mismatches (common on dedicated servers).
+	 */
+	private static boolean validateAndRepairMembership(ServerLevel level,
+			VoidNodeNetworkIndex.DimensionalBlockPos node, NetworkKey key, boolean allowMutation) {
+		VoidLinkBehaviour link = resolveLink(level, node.pos());
+		if (link == null) {
+			BlockState state = level.getBlockState(node.pos());
+			if (state.isAir() || VoidNodeType.fromBlockState(state) == VoidNodeType.UNKNOWN) {
+				if (allowMutation)
+					VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
+			}
+			return false;
+		}
+
+		if (link.getFrequencyStack(true).isEmpty() || link.getFrequencyStack(false).isEmpty()) {
+			if (allowMutation)
+				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
+			return false;
+		}
+
+		BlockState state = level.getBlockState(node.pos());
+		VoidNodeType type = VoidNodeType.fromBlockState(state);
+		if (!VoidNodeType.isTerminalDestination(type)) {
+			if (allowMutation)
+				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
+			return false;
+		}
+
+		NetworkKey liveKey = link.getNetworkKey();
+		if (!liveKey.equals(key)) {
+			if (allowMutation && link instanceof VoidTerminalLinkBehaviour terminalLink) {
+				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.removeStalePosition(level, node.dimension(), node.pos());
+				VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.addToNetwork(level, terminalLink);
+			}
+			return false;
+		}
+
+		// Re-affirm membership so SavedData cannot drift from the live block.
+		if (allowMutation && link instanceof VoidTerminalLinkBehaviour terminalLink)
+			VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.addToNetwork(level, terminalLink);
+
+		return true;
+	}
+
 	public static List<VoidNodeEntry> listNodes(ServerLevel terminalLevel, NetworkKey key, BlockPos terminalPos) {
+		return listNodes(terminalLevel, key, terminalPos, true);
+	}
+
+	/**
+	 * @param forceIncludeReference when true and {@code referencePos} is a real terminal, always
+	 *                              include it (station GUI). Portable UIs must pass false so the
+	 *                              player's feet are not injected as a fake node.
+	 */
+	public static List<VoidNodeEntry> listNodes(ServerLevel terminalLevel, NetworkKey key, BlockPos referencePos,
+			boolean forceIncludeReference) {
 		ResourceLocation terminalDimension = WorldHelper.getDimensionID(terminalLevel);
 		VoidNodeNamesData names = VoidwayMod.VOID_NODE_NAMES_DATA;
 		List<VoidNodeEntry> entries = new ArrayList<>();
+		Set<String> seen = new HashSet<>();
 
-		for (VoidNodeNetworkIndex.DimensionalBlockPos node : collectValidTerminals(terminalLevel, key, true)) {
-			ServerLevel level = terminalLevel.getServer()
-					.getLevel(ResourceKey.create(Registries.DIMENSION, node.dimension()));
-			BlockState state = level != null ? level.getBlockState(node.pos()) : null;
-			VoidNodeType type = state != null ? VoidNodeType.fromBlockState(state) : VoidNodeType.UNKNOWN;
-			String customName = names != null ? names.getName(node.dimension(), node.pos()) : null;
-			String renameName = customName != null && !customName.isBlank()
-					? customName
-					: buildDefaultName(type, node.pos());
-			String displayName = withDimensionPrefix(renameName, node.dimension(), terminalDimension);
-			boolean currentTerminal = node.dimension().equals(terminalDimension) && node.pos().equals(terminalPos);
-			int distanceBlocks = computeDistanceBlocks(terminalLevel, terminalDimension, terminalPos,
-					node.dimension(), node.pos());
-			entries.add(new VoidNodeEntry(node.dimension(), node.pos(), type.name(), displayName, renameName,
-					currentTerminal, distanceBlocks));
+		for (VoidNodeNetworkIndex.DimensionalBlockPos node : collectValidTerminals(terminalLevel, key, true))
+			addEntry(entries, seen, names, terminalLevel, terminalDimension, referencePos, node);
+
+		if (forceIncludeReference) {
+			VoidNodeTerminalTileEntity self = null;
+			BlockPos base = VoidNodeTerminalMultiblock.getBasePos(terminalLevel, referencePos);
+			if (base == null)
+				base = referencePos;
+			if (terminalLevel.getBlockEntity(base) instanceof VoidNodeTerminalTileEntity terminal)
+				self = terminal;
+			if (self != null) {
+				ResourceLocation refDim = WorldHelper.getDimensionID(terminalLevel);
+				addEntry(entries, seen, names, terminalLevel, terminalDimension, referencePos,
+						new VoidNodeNetworkIndex.DimensionalBlockPos(refDim, self.getBlockPos()));
+			}
 		}
 
 		entries.sort(Comparator
@@ -99,6 +145,41 @@ public final class VoidNodeDiscovery {
 				.thenComparing(VoidNodeEntry::dimension)
 				.thenComparing(e -> e.displayName().toLowerCase(Locale.ROOT)));
 		return entries;
+	}
+
+	private static void addEntry(List<VoidNodeEntry> entries, Set<String> seen, VoidNodeNamesData names,
+			ServerLevel terminalLevel, ResourceLocation terminalDimension, BlockPos terminalPos,
+			VoidNodeNetworkIndex.DimensionalBlockPos node) {
+		String id = node.dimension() + "|" + node.pos().asLong();
+		if (!seen.add(id))
+			return;
+
+		ServerLevel level = terminalLevel.getServer()
+				.getLevel(ResourceKey.create(Registries.DIMENSION, node.dimension()));
+		BlockState state = level != null ? level.getBlockState(node.pos()) : null;
+		VoidNodeType type = state != null ? VoidNodeType.fromBlockState(state) : VoidNodeType.UNKNOWN;
+		String customName = names != null ? names.getName(node.dimension(), node.pos()) : null;
+		String renameName = customName != null && !customName.isBlank()
+				? customName
+				: buildDefaultName(type, node.pos());
+		String displayName = withDimensionPrefix(renameName, node.dimension(), terminalDimension);
+		boolean currentTerminal = node.dimension().equals(terminalDimension) && node.pos().equals(terminalPos);
+		int distanceBlocks = computeDistanceBlocks(terminalLevel, terminalDimension, terminalPos,
+				node.dimension(), node.pos());
+		entries.add(new VoidNodeEntry(node.dimension(), node.pos(), type.name(), displayName, renameName,
+				currentTerminal, distanceBlocks));
+	}
+
+	/** Re-registers a terminal into the network index (memory + SavedData). */
+	public static void ensureIndexed(VoidNodeTerminalTileEntity terminal) {
+		if (!(terminal.getLevel() instanceof ServerLevel level))
+			return;
+		VoidTerminalLinkBehaviour link = terminal.getLink();
+		if (link == null)
+			return;
+		if (link.getFrequencyStack(true).isEmpty() || link.getFrequencyStack(false).isEmpty())
+			return;
+		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.addToNetwork(level, link);
 	}
 
 	@Nullable

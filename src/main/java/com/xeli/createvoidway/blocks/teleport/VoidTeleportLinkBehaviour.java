@@ -25,9 +25,15 @@ public class VoidTeleportLinkBehaviour extends VoidLinkBehaviour {
 
 	@Override
 	public void unload() {
+		// Keep pad pairing across chunk unload; permanent detach on destroy / leave network.
+		super.unload();
+	}
+
+	@Override
+	public void destroy() {
 		if (!getWorld().isClientSide())
 			getHandler().detachPadFromNetwork(getWorld(), getPos());
-		super.unload();
+		super.destroy();
 	}
 
 	@Override

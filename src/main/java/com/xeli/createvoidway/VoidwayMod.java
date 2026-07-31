@@ -86,11 +86,13 @@ public class VoidwayMod {
 
 		NeoForge.EVENT_BUS.addListener(CommonEvents::onLoad);
 		NeoForge.EVENT_BUS.addListener(CommonEvents::onUnload);
+		NeoForge.EVENT_BUS.addListener(CommonEvents::onServerStopping);
 		NeoForge.EVENT_BUS.addListener(VoidLinkHandler::onBlockActivated);
 
 		if (FMLEnvironment.dist == Dist.CLIENT) {
 			VoidwayClient.onCtorClient(modEventBus);
 			NeoForge.EVENT_BUS.addListener(ClientEvents::onTick);
+			NeoForge.EVENT_BUS.addListener(ClientEvents::onLoggingOut);
 		}
 	}
 

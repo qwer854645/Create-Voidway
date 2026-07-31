@@ -26,9 +26,15 @@ public class VoidStorageLinkBehaviour extends VoidLinkBehaviour {
 
 	@Override
 	public void unload() {
+		// Keep indexed while chunk is unloaded so cross-chunk partners stay visible this session.
+		super.unload();
+	}
+
+	@Override
+	public void destroy() {
 		if (!getWorld().isClientSide)
 			getHandler().removeFromNetwork(getWorld(), this);
-		super.unload();
+		super.destroy();
 	}
 
 	public Set<BlockPos> getNetwork() {

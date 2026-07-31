@@ -1,13 +1,14 @@
 package com.xeli.createvoidway.networking.packets;
 
-import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.VoidwayClient;
+import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.battery.VoidBattery;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class VoidBatteryUpdatePacket implements CustomPacketPayload {
@@ -25,11 +26,14 @@ public class VoidBatteryUpdatePacket implements CustomPacketPayload {
 
 	private VoidBatteryUpdatePacket(NetworkKey key, CompoundTag batteryTag) {
 		this.key = key;
-		this.batteryTag = batteryTag;
+		this.batteryTag = batteryTag != null ? batteryTag : new CompoundTag();
 	}
 
 	private VoidBatteryUpdatePacket(RegistryFriendlyByteBuf buffer) {
-		this(NetworkKey.fromBuffer(buffer), buffer.readNbt());
+		NetworkKey networkKey = NetworkKey.fromBuffer(buffer);
+		CompoundTag tag = buffer.readNbt();
+		this.key = networkKey;
+		this.batteryTag = tag != null ? tag : new CompoundTag();
 	}
 
 	private void write(RegistryFriendlyByteBuf buffer) {
@@ -38,9 +42,13 @@ public class VoidBatteryUpdatePacket implements CustomPacketPayload {
 	}
 
 	public static void handle(VoidBatteryUpdatePacket packet, IPayloadContext context) {
-		VoidBattery battery = new VoidBattery(packet.key);
-		battery.deserializeNBT(packet.batteryTag);
-		VoidwayClient.VOID_BATTERIES.storages.put(packet.key, battery);
+		context.enqueueWork(() -> {
+			if (!FMLEnvironment.dist.isClient())
+				return;
+			VoidBattery battery = new VoidBattery(packet.key);
+			battery.deserializeNBT(packet.batteryTag);
+			VoidwayClient.VOID_BATTERIES.storages.put(packet.key, battery);
+		});
 	}
 
 	@Override

@@ -93,6 +93,9 @@ public class VoidNodeTerminalTileEntity extends KineticBlockEntity
 	public boolean hasSufficientTransferFluid() {
 		if (!hasRequiredStress())
 			return false;
+		// Config drain of 0 means fluid is not required to operate.
+		if (getTransferFluidDrainThisTick() <= 0)
+			return true;
 		FluidStack stored = fluidTank.getFluid();
 		if (stored.isEmpty() || !RWFluids.isAllowedInVoidMotorInput(stored))
 			return false;
@@ -113,12 +116,18 @@ public class VoidNodeTerminalTileEntity extends KineticBlockEntity
 		return level != null && level.getGameTime() < teleportCooldownUntilGameTime;
 	}
 
-	public void startPortableTeleportCooldown() {
+	public void startTeleportCooldown() {
 		if (level == null || level.isClientSide)
 			return;
 		long cooldownTicks = VoidwayConfig.getPortableVoidTerminalCooldownSeconds() * 20L;
 		teleportCooldownUntilGameTime = level.getGameTime() + cooldownTicks;
 		sendData();
+	}
+
+	/** @deprecated use {@link #startTeleportCooldown()} */
+	@Deprecated
+	public void startPortableTeleportCooldown() {
+		startTeleportCooldown();
 	}
 
 	public boolean acceptsFluidFrom(Direction side) {
@@ -143,6 +152,8 @@ public class VoidNodeTerminalTileEntity extends KineticBlockEntity
 	}
 
 	public int getStressDemand() {
+		if (getLink().getFrequencyStack(true).isEmpty() || getLink().getFrequencyStack(false).isEmpty())
+			return 0;
 		if (level != null && !level.isClientSide && level instanceof net.minecraft.server.level.ServerLevel serverLevel)
 			return VoidNodeTerminalStress.computeDemand(serverLevel, worldPosition, getNetworkKey());
 		return syncedStressDemand;
