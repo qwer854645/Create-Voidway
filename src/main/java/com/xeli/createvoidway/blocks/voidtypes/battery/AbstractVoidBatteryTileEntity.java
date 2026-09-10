@@ -40,6 +40,8 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 
 	protected VoidStorageLinkBehaviour link;
 	protected int linkedPartners;
+	protected int readyPartners;
+	private boolean wasLocallyReady;
 
 	private final VoidTransferFluidTank fluidTank = new VoidTransferFluidTank(FLUID_CAPACITY, () -> {
 		if (level == null || level.isClientSide)
@@ -95,14 +97,42 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 	}
 
 	@Override
+	public int getReadyPartners() {
+		return readyPartners;
+	}
+
+	@Override
+	public void setReadyPartners(int partners) {
+		if (readyPartners == partners)
+			return;
+		readyPartners = partners;
+		sendData();
+	}
+
+	/**
+	 * Stress only — fluid is an efficiency mode detail, not partner-readiness.
+	 */
+	@Override
+	public boolean isLocallyReady() {
+		return hasRequiredStress();
+	}
+
+	@Override
 	public void updateLinkedPartnerCount(LevelAccessor world) {
 		if (level == null || level.isClientSide)
 			return;
-		int partners = VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countLinkedPartners(world, link);
-		if (partners == linkedPartners)
+		setLinkedPartners(VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countLinkedPartners(world, link));
+		setReadyPartners(VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countReadyPartners(world, link));
+	}
+
+	private void notifyStorageNetworkIfNeeded() {
+		if (level == null || level.isClientSide || link == null)
 			return;
-		linkedPartners = partners;
-		sendData();
+		boolean ready = isLocallyReady();
+		if (ready == wasLocallyReady)
+			return;
+		wasLocallyReady = ready;
+		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.updateNetworkOf(level, link);
 	}
 
 	@Override
@@ -148,7 +178,7 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 	}
 
 	public boolean canOperate() {
-		if (!hasRequiredStress())
+		if (!isLocallyReady() || readyPartners <= 0)
 			return false;
 		if (networkUsesEfficientTransfer())
 			return hasSufficientTransferFluid();
@@ -232,6 +262,7 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 		if (clientPacket)
 			getBattery().deserializeNBT(tag.getCompound("Battery"));
 		linkedPartners = tag.getInt("LinkedPartners");
+		readyPartners = tag.getInt("ReadyPartners");
 		if (tag.contains("FluidTank")) {
 			fluidTank.readFromNBT(registries, tag.getCompound("FluidTank"));
 			fluidTank.purgeInvalidContents();
@@ -244,15 +275,26 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 		if (clientPacket)
 			tag.put("Battery", getBattery().serializeNBT());
 		tag.putInt("LinkedPartners", linkedPartners);
+		tag.putInt("ReadyPartners", readyPartners);
 		tag.put("FluidTank", fluidTank.writeToNBT(registries, new CompoundTag()));
 		super.write(tag, registries, clientPacket);
 	}
 
 	@Override
+	public void onSpeedChanged(float previousSpeed) {
+		super.onSpeedChanged(previousSpeed);
+		notifyStorageNetworkIfNeeded();
+	}
+
+	@Override
 	public void tick() {
 		super.tick();
-		if (level != null && !level.isClientSide && usesEfficientTransfer())
-			fluidTank.drain(getTransferFluidDrainThisTick(), IFluidHandler.FluidAction.EXECUTE);
+		if (level != null && !level.isClientSide) {
+			notifyStorageNetworkIfNeeded();
+			if (usesEfficientTransfer())
+				fluidTank.drain(getTransferFluidDrainThisTick(), IFluidHandler.FluidAction.EXECUTE);
+			notifyStorageNetworkIfNeeded();
+		}
 	}
 
 	public boolean hasShaftConnection() {
@@ -282,7 +324,7 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 		VoidStorageGoggleTooltip.addBatteryKineticStatus(tooltip, speed,
 				getChannelStressDemand(), getTransferFluidDrainThisTick(),
 				hasShaftConnection(), hasSource(), isOverStressed(), hasRequiredStress(),
-				hasSufficientTransferFluid(), canOperate(), networkUsesEfficientTransfer(),
+				hasSufficientTransferFluid(), isLocallyReady(), canOperate(), networkUsesEfficientTransfer(),
 				isDryTransferMode(), getDryTransferLossPercent(),
 				VoidBatteryLinkMetrics.computeLinkDistanceBlocks(this),
 				linkedPartners,

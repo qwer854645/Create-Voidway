@@ -44,7 +44,9 @@ public final class VoidMotorGoggleTooltip {
 											   boolean hasSource,
 											   boolean isOverStressed,
 											   boolean hasSufficientTransferFluid,
-											   boolean canRelay) {
+											   boolean canRelay,
+											   boolean isInjecting,
+											   boolean hasReadyPartners) {
 		if (speedRpm == 0) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_motor_input.needs_rotation")
@@ -87,10 +89,15 @@ public final class VoidMotorGoggleTooltip {
 					.translate("void_motor_input.no_transfer_fluid")
 					.style(ChatFormatting.RED)
 					.forGoggles(tooltip);
-		} else if (canRelay) {
+		} else if (isInjecting) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_motor_input.injecting")
 					.style(ChatFormatting.GREEN)
+					.forGoggles(tooltip);
+		} else if (canRelay && !hasReadyPartners) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate("void_motor_input.partner_not_ready")
+					.style(ChatFormatting.RED)
 					.forGoggles(tooltip);
 		}
 	}

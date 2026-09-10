@@ -34,6 +34,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	private boolean portalBlocksActive;
 	@Nullable
 	private VoidPortalShape lastFilledShape;
+	private boolean partnerReady;
 
 	public VoidPortalConnectorTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -119,7 +120,29 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 				&& hasFrequencyConfigured()
 				&& pairStatus == VoidPortalNetworkHandler.PairStatus.VALID
 				&& hasRequiredStress()
+				&& hasTransferFluid()
+				&& partnerReady;
+	}
+
+	public boolean isPartnerReady() {
+		return partnerReady;
+	}
+
+	public boolean isLocallyReady() {
+		return getActiveShape() != null
+				&& hasFrequencyConfigured()
+				&& hasRequiredStress()
 				&& hasTransferFluid();
+	}
+
+	private boolean computePartnerReady() {
+		if (partnerPos == null || level == null || pairStatus != VoidPortalNetworkHandler.PairStatus.VALID)
+			return false;
+		if (!level.isLoaded(partnerPos))
+			return false;
+		if (!(level.getBlockEntity(partnerPos) instanceof VoidPortalConnectorTileEntity partner))
+			return false;
+		return partner.isLocallyReady();
 	}
 
 	public boolean hasTransferFluid() {
@@ -221,6 +244,12 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		if (level == null || level.isClientSide)
 			return;
 
+		boolean ready = computePartnerReady();
+		if (ready != partnerReady) {
+			partnerReady = ready;
+			sendData();
+		}
+
 		refreshShapeAndNetwork();
 		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.tickCooldowns((ServerLevel) level);
 		processEntities((ServerLevel) level);
@@ -305,6 +334,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		else
 			partnerPos = null;
 		linkDistance = tag.getInt("LinkDistance");
+		partnerReady = tag.getBoolean("PartnerReady");
 		super.read(tag, registries, clientPacket);
 	}
 
@@ -315,6 +345,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		if (partnerPos != null)
 			tag.putLong("PartnerPos", partnerPos.asLong());
 		tag.putInt("LinkDistance", linkDistance);
+		tag.putBoolean("PartnerReady", partnerReady);
 		super.write(tag, registries, clientPacket);
 	}
 

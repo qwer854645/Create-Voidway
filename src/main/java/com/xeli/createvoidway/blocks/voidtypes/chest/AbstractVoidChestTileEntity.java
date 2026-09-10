@@ -48,6 +48,8 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 
 	protected VoidStorageLinkBehaviour link;
 	protected int linkedPartners;
+	protected int readyPartners;
+	private boolean wasLocallyReady;
 
 	private int openCount;
 	public LerpedFloat lid = LerpedFloat.linear().startWithValue(0);
@@ -106,14 +108,39 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 	}
 
 	@Override
+	public int getReadyPartners() {
+		return readyPartners;
+	}
+
+	@Override
+	public void setReadyPartners(int partners) {
+		if (readyPartners == partners)
+			return;
+		readyPartners = partners;
+		sendData();
+	}
+
+	@Override
+	public boolean isLocallyReady() {
+		return hasRequiredStress() && hasSufficientTransferFluid();
+	}
+
+	@Override
 	public void updateLinkedPartnerCount(LevelAccessor world) {
 		if (level == null || level.isClientSide)
 			return;
-		int partners = VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countLinkedPartners(world, link);
-		if (partners == linkedPartners)
+		setLinkedPartners(VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countLinkedPartners(world, link));
+		setReadyPartners(VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countReadyPartners(world, link));
+	}
+
+	private void notifyStorageNetworkIfNeeded() {
+		if (level == null || level.isClientSide || link == null)
 			return;
-		linkedPartners = partners;
-		sendData();
+		boolean ready = isLocallyReady();
+		if (ready == wasLocallyReady)
+			return;
+		wasLocallyReady = ready;
+		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.updateNetworkOf(level, link);
 	}
 
 	@Override
@@ -171,7 +198,7 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 	}
 
 	public boolean canOperate() {
-		return hasRequiredStress() && hasSufficientTransferFluid();
+		return isLocallyReady() && readyPartners > 0;
 	}
 
 	public FluidTank getFluidTank() {
@@ -219,6 +246,7 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 			openCount = tag.getInt("OpenCount");
 		}
 		linkedPartners = tag.getInt("LinkedPartners");
+		readyPartners = tag.getInt("ReadyPartners");
 		if (tag.contains("FluidTank")) {
 			fluidTank.readFromNBT(registries, tag.getCompound("FluidTank"));
 			fluidTank.purgeInvalidContents();
@@ -233,6 +261,7 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 			tag.putInt("OpenCount", openCount);
 		}
 		tag.putInt("LinkedPartners", linkedPartners);
+		tag.putInt("ReadyPartners", readyPartners);
 		tag.put("FluidTank", fluidTank.writeToNBT(registries, new CompoundTag()));
 
 		super.write(tag, registries, clientPacket);
@@ -252,10 +281,20 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 	}
 
 	@Override
+	public void onSpeedChanged(float previousSpeed) {
+		super.onSpeedChanged(previousSpeed);
+		notifyStorageNetworkIfNeeded();
+	}
+
+	@Override
 	public void tick() {
 		super.tick();
-		if (level != null && !level.isClientSide && hasRequiredStress())
-			fluidTank.drain(getTransferFluidDrainThisTick(), IFluidHandler.FluidAction.EXECUTE);
+		if (level != null && !level.isClientSide) {
+			notifyStorageNetworkIfNeeded();
+			if (hasRequiredStress())
+				fluidTank.drain(getTransferFluidDrainThisTick(), IFluidHandler.FluidAction.EXECUTE);
+			notifyStorageNetworkIfNeeded();
+		}
 		lid.chase(openCount > 0 ? 1 : 0, 0.1f, LerpedFloat.Chaser.LINEAR);
 		lid.tickChaser();
 	}
@@ -312,7 +351,7 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 		VoidStorageGoggleTooltip.addKineticStatus(tooltip, "void_chest", speed,
 				getChannelStressDemand(), getTransferFluidDrainThisTick(),
 				hasShaftConnection(), hasSource(), isOverStressed(), hasRequiredStress(),
-				hasSufficientTransferFluid(), canOperate());
+				hasSufficientTransferFluid(), isLocallyReady(), canOperate());
 
 		return added;
 	}

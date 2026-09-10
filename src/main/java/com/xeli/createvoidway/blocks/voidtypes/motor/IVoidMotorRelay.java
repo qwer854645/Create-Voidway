@@ -24,6 +24,12 @@ public interface IVoidMotorRelay {
 
 	boolean isRelayAlive();
 
+	/**
+	 * Local readiness only — must not inspect partners.
+	 * Inputs: rotating with fluid. Outputs: always ready while alive.
+	 */
+	boolean isLocallyReady();
+
 	void setChannelStressStats(float total, float usedStress);
 
 	void updateLinkedPartnerCount(LevelAccessor world);
@@ -31,5 +37,9 @@ public interface IVoidMotorRelay {
 	int getLinkedPartners();
 
 	void setLinkedPartners(int partners);
+
+	int getReadyPartners();
+
+	void setReadyPartners(int partners);
 
 }

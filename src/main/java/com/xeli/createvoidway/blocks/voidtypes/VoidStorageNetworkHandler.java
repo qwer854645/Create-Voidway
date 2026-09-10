@@ -48,8 +48,10 @@ public class VoidStorageNetworkHandler {
 		else
 			updateNetworkOf(world, actor);
 
-		if (actor.blockEntity instanceof IVoidStorageRelay relay)
+		if (actor.blockEntity instanceof IVoidStorageRelay relay) {
 			relay.setLinkedPartners(0);
+			relay.setReadyPartners(0);
+		}
 	}
 
 	public void updateNetworkOf(LevelAccessor world, VoidStorageLinkBehaviour actor) {
@@ -69,6 +71,14 @@ public class VoidStorageNetworkHandler {
 	}
 
 	public int countLinkedPartners(LevelAccessor world, VoidStorageLinkBehaviour actor) {
+		return countPartners(world, actor, false);
+	}
+
+	public int countReadyPartners(LevelAccessor world, VoidStorageLinkBehaviour actor) {
+		return countPartners(world, actor, true);
+	}
+
+	private int countPartners(LevelAccessor world, VoidStorageLinkBehaviour actor, boolean requireReady) {
 		if (!(actor.blockEntity instanceof IVoidStorageRelay self))
 			return 0;
 
@@ -86,6 +96,8 @@ public class VoidStorageNetworkHandler {
 			if (relay.getStorageKind() != kind)
 				continue;
 			if (relay.isStorageOutput() != wantOutputs)
+				continue;
+			if (requireReady && !relay.isLocallyReady())
 				continue;
 			count++;
 		}

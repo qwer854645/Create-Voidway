@@ -19,6 +19,7 @@ public abstract class AbstractVoidMotorTileEntity extends KineticBlockEntity imp
 
 	protected VoidMotorLinkBehaviour link;
 	protected int linkedPartners;
+	protected int readyPartners;
 	protected float channelStressTotal;
 	protected float channelStressUsed;
 
@@ -59,6 +60,19 @@ public abstract class AbstractVoidMotorTileEntity extends KineticBlockEntity imp
 	}
 
 	@Override
+	public int getReadyPartners() {
+		return readyPartners;
+	}
+
+	@Override
+	public void setReadyPartners(int partners) {
+		if (readyPartners == partners)
+			return;
+		readyPartners = partners;
+		sendData();
+	}
+
+	@Override
 	public void setChannelStressStats(float total, float usedStress) {
 		if (channelStressTotal == total && channelStressUsed == usedStress)
 			return;
@@ -71,11 +85,9 @@ public abstract class AbstractVoidMotorTileEntity extends KineticBlockEntity imp
 	public void updateLinkedPartnerCount(LevelAccessor world) {
 		if (level == null || level.isClientSide)
 			return;
-		int partners = getHandler().countLinkedPartners(world, link, !isVoidMotorOutput());
-		if (partners == linkedPartners)
-			return;
-		linkedPartners = partners;
-		sendData();
+		boolean wantOutputs = !isVoidMotorOutput();
+		setLinkedPartners(getHandler().countLinkedPartners(world, link, wantOutputs));
+		setReadyPartners(getHandler().countReadyPartners(world, link, wantOutputs));
 	}
 
 	protected VoidMotorNetworkHandler getHandler() {
@@ -93,6 +105,11 @@ public abstract class AbstractVoidMotorTileEntity extends KineticBlockEntity imp
 	}
 
 	@Override
+	public boolean isLocallyReady() {
+		return isRelayAlive();
+	}
+
+	@Override
 	public float getChannelStressContribution() {
 		return 0;
 	}
@@ -106,6 +123,7 @@ public abstract class AbstractVoidMotorTileEntity extends KineticBlockEntity imp
 	protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		super.read(tag, registries, clientPacket);
 		linkedPartners = tag.getInt("LinkedPartners");
+		readyPartners = tag.getInt("ReadyPartners");
 		channelStressTotal = tag.getFloat("ChannelStressTotal");
 		channelStressUsed = tag.getFloat("ChannelStressUsed");
 	}
@@ -113,6 +131,7 @@ public abstract class AbstractVoidMotorTileEntity extends KineticBlockEntity imp
 	@Override
 	protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		tag.putInt("LinkedPartners", linkedPartners);
+		tag.putInt("ReadyPartners", readyPartners);
 		tag.putFloat("ChannelStressTotal", channelStressTotal);
 		tag.putFloat("ChannelStressUsed", channelStressUsed);
 		super.write(tag, registries, clientPacket);

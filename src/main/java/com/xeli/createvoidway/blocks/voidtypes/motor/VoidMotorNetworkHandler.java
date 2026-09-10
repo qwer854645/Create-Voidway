@@ -59,8 +59,10 @@ public class VoidMotorNetworkHandler {
 		else
 			updateNetworkOf(world, actor);
 
-		if (actor.blockEntity instanceof IVoidMotorRelay relay)
+		if (actor.blockEntity instanceof IVoidMotorRelay relay) {
 			relay.setLinkedPartners(0);
+			relay.setReadyPartners(0);
+		}
 	}
 
 	/**
@@ -74,6 +76,13 @@ public class VoidMotorNetworkHandler {
 			BlockPos pos = iterator.next();
 			if (!isAlive(world, pos))
 				iterator.remove();
+		}
+
+		// Partner readiness must be refreshed before stress redistribution.
+		for (BlockPos pos : network) {
+			BlockEntity blockEntity = world.getBlockEntity(pos);
+			if (blockEntity instanceof IVoidMotorRelay relay)
+				relay.updateLinkedPartnerCount(world);
 		}
 
 		float totalStressIn = 0;
@@ -107,17 +116,20 @@ public class VoidMotorNetworkHandler {
 
 		for (BlockPos pos : network) {
 			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (blockEntity instanceof VoidMotorInputTileEntity input) {
+			if (blockEntity instanceof VoidMotorInputTileEntity input)
 				input.setChannelStressStats(totalStressIn, 0);
-				input.updateLinkedPartnerCount(world);
-			}
 		}
-
-		for (VoidMotorOutputTileEntity output : outputs)
-			output.updateLinkedPartnerCount(world);
 	}
 
 	public int countLinkedPartners(LevelAccessor world, VoidMotorLinkBehaviour actor, boolean wantOutputs) {
+		return countPartners(world, actor, wantOutputs, false);
+	}
+
+	public int countReadyPartners(LevelAccessor world, VoidMotorLinkBehaviour actor, boolean wantOutputs) {
+		return countPartners(world, actor, wantOutputs, true);
+	}
+
+	private int countPartners(LevelAccessor world, VoidMotorLinkBehaviour actor, boolean wantOutputs, boolean requireReady) {
 		int count = 0;
 		BlockPos self = actor.getPos();
 		for (BlockPos pos : getNetworkOf(world, actor)) {
@@ -126,8 +138,11 @@ public class VoidMotorNetworkHandler {
 			BlockEntity blockEntity = world.getBlockEntity(pos);
 			if (!(blockEntity instanceof IVoidMotorRelay relay))
 				continue;
-			if (relay.isVoidMotorOutput() == wantOutputs)
-				count++;
+			if (relay.isVoidMotorOutput() != wantOutputs)
+				continue;
+			if (requireReady && !relay.isLocallyReady())
+				continue;
+			count++;
 		}
 		return count;
 	}

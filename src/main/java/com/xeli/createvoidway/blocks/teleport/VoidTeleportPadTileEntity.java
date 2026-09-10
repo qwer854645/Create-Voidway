@@ -42,6 +42,7 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 	private int linkDistance;
 
 	private int syncedChargeTicks;
+	private boolean partnerReady;
 
 	private final VoidTransferFluidTank fluidTank = new VoidTransferFluidTank(
 			VoidwayConfig.getVoidTeleportFluidCapacity(), () -> {
@@ -141,8 +142,22 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 				&& Math.abs(getTheoreticalSpeed()) > 0;
 	}
 
+	public boolean isPartnerReady() {
+		return partnerReady;
+	}
+
 	public boolean canOperate() {
-		return pairStatus == PairStatus.VALID && hasRequiredStress();
+		return pairStatus == PairStatus.VALID && hasRequiredStress() && partnerReady;
+	}
+
+	private boolean computePartnerReady() {
+		if (partnerPos == null || level == null || pairStatus != PairStatus.VALID)
+			return false;
+		if (!level.isLoaded(partnerPos))
+			return false;
+		if (!(level.getBlockEntity(partnerPos) instanceof VoidTeleportPadTileEntity partner))
+			return false;
+		return partner.hasRequiredStress();
 	}
 
 	public List<Entity> getPendingBatchEntities() {
@@ -233,6 +248,13 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.refreshPadBinding(level, worldPosition);
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.tickCooldowns((ServerLevel) level);
+
+		boolean ready = computePartnerReady();
+		if (ready != partnerReady) {
+			partnerReady = ready;
+			sendData();
+		}
+
 		balanceFluidWithPartner((ServerLevel) level);
 		processEntities((ServerLevel) level);
 	}
@@ -310,6 +332,8 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 			return false;
 		if (partner.getPairStatus() != PairStatus.VALID)
 			return false;
+		if (!partner.hasRequiredStress())
+			return false;
 
 		List<Entity> batch = new ArrayList<>();
 		for (Entity entity : getPendingBatchEntities()) {
@@ -351,6 +375,7 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 			boundLinkPos = null;
 		syncedChargeTicks = tag.getInt("ChargeTicks");
 		linkDistance = tag.getInt("LinkDistance");
+		partnerReady = tag.getBoolean("PartnerReady");
 		if (tag.contains("FluidTank")) {
 			fluidTank.readFromNBT(registries, tag.getCompound("FluidTank"));
 			fluidTank.purgeInvalidContents();
@@ -368,6 +393,7 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 			tag.putLong("BoundLinkPos", boundLinkPos.asLong());
 		tag.putInt("ChargeTicks", syncedChargeTicks);
 		tag.putInt("LinkDistance", linkDistance);
+		tag.putBoolean("PartnerReady", partnerReady);
 		tag.put("FluidTank", fluidTank.writeToNBT(registries, new CompoundTag()));
 		super.write(tag, registries, clientPacket);
 	}

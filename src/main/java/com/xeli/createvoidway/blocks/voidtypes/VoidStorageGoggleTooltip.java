@@ -33,17 +33,17 @@ public final class VoidStorageGoggleTooltip {
 										int speedRpm, int channelStressDemand, int transferFluidDrain,
 										boolean hasShaftConnection, boolean hasSource, boolean isOverStressed,
 										boolean hasRequiredStress, boolean hasSufficientTransferFluid,
-										boolean canOperate) {
+										boolean isLocallyReady, boolean canOperate) {
 		addKineticStatus(tooltip, keyPrefix, speedRpm, channelStressDemand, transferFluidDrain,
 				hasShaftConnection, hasSource, isOverStressed, hasRequiredStress,
-				hasSufficientTransferFluid, canOperate, hasSufficientTransferFluid, 0, 0, false);
+				hasSufficientTransferFluid, isLocallyReady, canOperate, hasSufficientTransferFluid, 0, 0, false);
 	}
 
 	public static void addKineticStatus(List<Component> tooltip, String keyPrefix,
 										int speedRpm, int channelStressDemand, int transferFluidDrain,
 										boolean hasShaftConnection, boolean hasSource, boolean isOverStressed,
 										boolean hasRequiredStress, boolean hasSufficientTransferFluid,
-										boolean canOperate, boolean usesEfficientTransfer,
+										boolean isLocallyReady, boolean canOperate, boolean usesEfficientTransfer,
 										int dryTransferLossPercent, int linkDistanceBlocks,
 										boolean showsDryTransferStatus) {
 		if (!hasShaftConnection) {
@@ -99,6 +99,11 @@ public final class VoidStorageGoggleTooltip {
 						.style(ChatFormatting.GREEN)
 						.forGoggles(tooltip);
 			}
+		} else if (isLocallyReady) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate(keyPrefix + ".partner_not_ready")
+					.style(ChatFormatting.RED)
+					.forGoggles(tooltip);
 		} else if (!hasSufficientTransferFluid) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate(keyPrefix + ".no_transfer_fluid")
@@ -111,7 +116,7 @@ public final class VoidStorageGoggleTooltip {
 											   int speedRpm, int channelStressDemand, int transferFluidDrain,
 											   boolean hasShaftConnection, boolean hasSource, boolean isOverStressed,
 											   boolean hasRequiredStress, boolean hasSufficientTransferFluid,
-											   boolean canOperate, boolean networkUsesEfficientTransfer,
+											   boolean isLocallyReady, boolean canOperate, boolean networkUsesEfficientTransfer,
 											   boolean isDryTransferMode, int dryTransferLossPercent,
 											   int linkDistanceBlocks, int linkedPartners,
 											   VoidBatteryLinkMetrics.NetworkFluidReadiness networkFluidReadiness) {
@@ -200,6 +205,11 @@ public final class VoidStorageGoggleTooltip {
 						.style(ChatFormatting.GREEN)
 						.forGoggles(tooltip);
 			}
+		} else if (isLocallyReady) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate("void_battery.partner_not_ready")
+					.style(ChatFormatting.RED)
+					.forGoggles(tooltip);
 		} else if (networkUsesEfficientTransfer && !hasSufficientTransferFluid) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_battery.no_transfer_fluid")

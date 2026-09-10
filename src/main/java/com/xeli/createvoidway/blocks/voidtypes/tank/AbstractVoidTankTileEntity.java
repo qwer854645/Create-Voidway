@@ -31,6 +31,8 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 
 	protected VoidStorageLinkBehaviour link;
 	protected int linkedPartners;
+	protected int readyPartners;
+	private boolean wasLocallyReady;
 
 	protected AbstractVoidTankTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -79,14 +81,39 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 	}
 
 	@Override
+	public int getReadyPartners() {
+		return readyPartners;
+	}
+
+	@Override
+	public void setReadyPartners(int partners) {
+		if (readyPartners == partners)
+			return;
+		readyPartners = partners;
+		sendData();
+	}
+
+	@Override
+	public boolean isLocallyReady() {
+		return hasRequiredStress();
+	}
+
+	@Override
 	public void updateLinkedPartnerCount(LevelAccessor world) {
 		if (level == null || level.isClientSide)
 			return;
-		int partners = VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countLinkedPartners(world, link);
-		if (partners == linkedPartners)
+		setLinkedPartners(VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countLinkedPartners(world, link));
+		setReadyPartners(VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.countReadyPartners(world, link));
+	}
+
+	private void notifyStorageNetworkIfNeeded() {
+		if (level == null || level.isClientSide || link == null)
 			return;
-		linkedPartners = partners;
-		sendData();
+		boolean ready = isLocallyReady();
+		if (ready == wasLocallyReady)
+			return;
+		wasLocallyReady = ready;
+		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.updateNetworkOf(level, link);
 	}
 
 	@Override
@@ -117,7 +144,7 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 	}
 
 	public boolean canOperate() {
-		return hasRequiredStress();
+		return isLocallyReady() && readyPartners > 0;
 	}
 
 	public VoidTank getFluidStorage() {
@@ -161,6 +188,7 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 		if (clientPacket)
 			getFluidStorage().readFromNBT(registries, tag.getCompound("Tank"));
 		linkedPartners = tag.getInt("LinkedPartners");
+		readyPartners = tag.getInt("ReadyPartners");
 		super.read(tag, registries, clientPacket);
 	}
 
@@ -169,7 +197,21 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 		if (clientPacket)
 			tag.put("Tank", getFluidStorage().writeToNBT(registries, new CompoundTag()));
 		tag.putInt("LinkedPartners", linkedPartners);
+		tag.putInt("ReadyPartners", readyPartners);
 		super.write(tag, registries, clientPacket);
+	}
+
+	@Override
+	public void onSpeedChanged(float previousSpeed) {
+		super.onSpeedChanged(previousSpeed);
+		notifyStorageNetworkIfNeeded();
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		if (level != null && !level.isClientSide)
+			notifyStorageNetworkIfNeeded();
 	}
 
 	public boolean hasShaftConnection() {
@@ -194,7 +236,7 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 		VoidStorageGoggleTooltip.addKineticStatus(tooltip, "void_tank", speed,
 				getChannelStressDemand(), 0,
 				hasShaftConnection(), hasSource(), isOverStressed(), hasRequiredStress(),
-				true, canOperate());
+				true, isLocallyReady(), canOperate());
 
 		return added;
 	}

@@ -182,6 +182,12 @@ public final class VoidPortalGoggleTooltip {
 					.translate("void_portal.portal_active")
 					.style(ChatFormatting.GREEN)
 					.forGoggles(tooltip);
+		} else if (connector.getPairStatus() == VoidPortalNetworkHandler.PairStatus.VALID
+				&& connector.isLocallyReady() && !connector.isPartnerReady()) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate("void_portal.partner_not_ready")
+					.style(ChatFormatting.RED)
+					.forGoggles(tooltip);
 		} else {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_portal.portal_inactive")

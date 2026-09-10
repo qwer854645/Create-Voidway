@@ -34,6 +34,7 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 
 	protected VoidMotorLinkBehaviour link;
 	protected int linkedPartners;
+	protected int readyPartners;
 	protected float channelStressTotal;
 	protected float channelStressUsed;
 	private float grantedRpm;
@@ -102,8 +103,18 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	}
 
 	@Override
+	public boolean isLocallyReady() {
+		return isRelayAlive();
+	}
+
+	@Override
 	public int getLinkedPartners() {
 		return linkedPartners;
+	}
+
+	@Override
+	public int getReadyPartners() {
+		return readyPartners;
 	}
 
 	@Override
@@ -124,14 +135,19 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	}
 
 	@Override
+	public void setReadyPartners(int partners) {
+		if (readyPartners == partners)
+			return;
+		readyPartners = partners;
+		sendData();
+	}
+
+	@Override
 	public void updateLinkedPartnerCount(LevelAccessor world) {
 		if (level == null || level.isClientSide)
 			return;
-		int partners = getHandler().countLinkedPartners(world, link, false);
-		if (partners == linkedPartners)
-			return;
-		linkedPartners = partners;
-		sendData();
+		setLinkedPartners(getHandler().countLinkedPartners(world, link, false));
+		setReadyPartners(getHandler().countReadyPartners(world, link, false));
 	}
 
 	private VoidMotorNetworkHandler getHandler() {
@@ -191,6 +207,7 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		super.read(tag, registries, clientPacket);
 		linkedPartners = tag.getInt("LinkedPartners");
+		readyPartners = tag.getInt("ReadyPartners");
 		channelStressTotal = tag.getFloat("ChannelStressTotal");
 		channelStressUsed = tag.getFloat("ChannelStressUsed");
 		grantedRpm = tag.getFloat("GrantedRpm");
@@ -199,6 +216,7 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	@Override
 	protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		tag.putInt("LinkedPartners", linkedPartners);
+		tag.putInt("ReadyPartners", readyPartners);
 		tag.putFloat("ChannelStressTotal", channelStressTotal);
 		tag.putFloat("ChannelStressUsed", channelStressUsed);
 		tag.putFloat("GrantedRpm", grantedRpm);
@@ -223,6 +241,11 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 					.translate("void_motor.not_linked")
 					.style(ChatFormatting.RED)
 					.forGoggles(tooltip);
+		} else if (readyPartners == 0 || channelStressTotal <= 0) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate("void_motor_output.waiting_for_stress")
+					.style(ChatFormatting.RED)
+					.forGoggles(tooltip);
 		} else {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_motor.channel_stress_total", (int) channelStressTotal)
@@ -234,6 +257,11 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 				new LangBuilder(VoidwayMod.ID)
 						.translate("void_motor_output.stress_limited", (int) Math.abs(grantedRpm))
 						.style(ChatFormatting.RED)
+						.forGoggles(tooltip);
+			} else if (Math.abs(grantedRpm) > 0) {
+				new LangBuilder(VoidwayMod.ID)
+						.translate("void_motor_output.transmitting", (int) Math.abs(grantedRpm))
+						.style(ChatFormatting.GREEN)
 						.forGoggles(tooltip);
 			}
 		}

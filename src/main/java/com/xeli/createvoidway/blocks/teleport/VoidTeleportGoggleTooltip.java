@@ -133,6 +133,12 @@ public final class VoidTeleportGoggleTooltip {
 								VoidwayConfig.getVoidTeleportChargeTicks())
 						.forGoggles(tooltip);
 			}
+		} else if (pad.getPairStatus() == VoidTeleportNetworkHandler.PairStatus.VALID
+				&& pad.hasRequiredStress() && !pad.isPartnerReady()) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate("void_teleport_pad.partner_not_ready")
+					.style(ChatFormatting.RED)
+					.forGoggles(tooltip);
 		}
 	}
 

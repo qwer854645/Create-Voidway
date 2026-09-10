@@ -51,6 +51,16 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		return hasRotation() && hasSufficientTransferFluid();
 	}
 
+	@Override
+	public boolean isLocallyReady() {
+		return canRelay();
+	}
+
+	/** Locally able to inject and at least one ready output is linked. */
+	public boolean isInjecting() {
+		return canRelay() && readyPartners > 0;
+	}
+
 	private boolean hasRotation() {
 		return getTheoreticalSpeed() != 0;
 	}
@@ -88,21 +98,21 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	public float getLocalStressConsumption() {
-		if (!canRelay())
+		if (!isInjecting())
 			return 0;
 		return (float) Math.floor(getReceivedStress() * VoidwayConfig.getInputLocalStressFraction());
 	}
 
 	@Override
 	public float getChannelStressContribution() {
-		if (!canRelay())
+		if (!isInjecting())
 			return 0;
 		return getPotentialChannelStressContribution();
 	}
 
 	@Override
 	public float calculateStressApplied() {
-		if (!canRelay())
+		if (!isInjecting())
 			return 0;
 		float speed = Math.abs(getTheoreticalSpeed());
 		if (speed == 0)
@@ -117,7 +127,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	private boolean isRelayingRotation() {
-		return canRelay() && getTheoreticalSpeed() != 0;
+		return isInjecting() && getTheoreticalSpeed() != 0;
 	}
 
 	private void consumeTransferFluid() {
@@ -176,9 +186,10 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		VoidMotorGoggleTooltip.addInputInjectionStatus(tooltip, speed,
 				(int) getReceivedStress(),
 				(int) getLocalStressConsumption(),
-				(int) (canRelay() ? getChannelStressContribution() : getPotentialChannelStressContribution()),
+				(int) (isInjecting() ? getChannelStressContribution() : getPotentialChannelStressContribution()),
 				getTransferFluidDrainThisTick(),
-				hasSource(), isOverStressed(), hasSufficientTransferFluid(), canRelay());
+				hasSource(), isOverStressed(), hasSufficientTransferFluid(),
+				canRelay(), isInjecting(), readyPartners > 0);
 
 		return added;
 	}
