@@ -1,6 +1,7 @@
 package com.xeli.createvoidway.config;
 
 import com.xeli.createvoidway.VoidwayMod;
+import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorOutputTileEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
@@ -25,6 +26,16 @@ public final class VoidwayConfig {
 	private static final ModConfigSpec.IntValue VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_MIN_MB = BUILDER
 			.comment("Minimum void transfer fluid drained per tick while the input is relaying.")
 			.defineInRange("voidMotorInputTransferFluidDrainMinMbPerTick", 5, 0, 10000);
+
+	private static final ModConfigSpec.IntValue VOID_MOTOR_INPUT_MAX_STRESS_CAPACITY = BUILDER
+			.comment("Maximum stress capacity (SU) of a single void motor input.")
+			.comment("Stress scales with RPM and reaches this value at 256 RPM (and is capped above that).")
+			.defineInRange("voidMotorInputMaxStressCapacity", 10240, 0, 10000000);
+
+	private static final ModConfigSpec.IntValue VOID_MOTOR_OUTPUT_MAX_STRESS_CAPACITY = BUILDER
+			.comment("Maximum stress capacity (SU) of a single void motor output.")
+			.comment("Stress scales with RPM and reaches this value at 256 RPM (and is capped above that).")
+			.defineInRange("voidMotorOutputMaxStressCapacity", 10240, 0, 10000000);
 
 	private static final ModConfigSpec.IntValue VOID_CHEST_STRESS_BASE = BUILDER
 			.comment("Stress demand (SU) for void chest input and output when the linked channel is empty.")
@@ -142,6 +153,8 @@ public final class VoidwayConfig {
 	private static int voidMotorInputLocalStressPercent = VOID_MOTOR_INPUT_LOCAL_STRESS_PERCENT.getDefault();
 	private static int voidMotorInputTransferFluidDrainPercent = VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_PERCENT.getDefault();
 	private static int voidMotorInputTransferFluidDrainMinMbPerTick = VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_MIN_MB.getDefault();
+	private static int voidMotorInputMaxStressCapacity = VOID_MOTOR_INPUT_MAX_STRESS_CAPACITY.getDefault();
+	private static int voidMotorOutputMaxStressCapacity = VOID_MOTOR_OUTPUT_MAX_STRESS_CAPACITY.getDefault();
 	private static int voidChestStressBase = VOID_CHEST_STRESS_BASE.getDefault();
 	private static int voidChestStressAtFullChannel = VOID_CHEST_STRESS_AT_FULL_CHANNEL.getDefault();
 	private static int voidChestTransferFluidDrainMbPerTick = VOID_CHEST_TRANSFER_FLUID_DRAIN_MB.getDefault();
@@ -189,6 +202,23 @@ public final class VoidwayConfig {
 
 	public static int getInputTransferFluidDrainMinMbPerTick() {
 		return voidMotorInputTransferFluidDrainMinMbPerTick;
+	}
+
+	public static int getVoidMotorInputMaxStressCapacity() {
+		return voidMotorInputMaxStressCapacity;
+	}
+
+	/** Stress per RPM so capacity is reached at {@link VoidMotorOutputTileEntity#MAX_SPEED}. */
+	public static float getVoidMotorInputStressPerRpm() {
+		return voidMotorInputMaxStressCapacity / (float) VoidMotorOutputTileEntity.MAX_SPEED;
+	}
+
+	public static int getVoidMotorOutputMaxStressCapacity() {
+		return voidMotorOutputMaxStressCapacity;
+	}
+
+	public static float getVoidMotorOutputStressPerRpm() {
+		return voidMotorOutputMaxStressCapacity / (float) VoidMotorOutputTileEntity.MAX_SPEED;
 	}
 
 	public static int getVoidChestStressBase() {
@@ -303,6 +333,8 @@ public final class VoidwayConfig {
 		voidMotorInputLocalStressPercent = VOID_MOTOR_INPUT_LOCAL_STRESS_PERCENT.get();
 		voidMotorInputTransferFluidDrainPercent = VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_PERCENT.get();
 		voidMotorInputTransferFluidDrainMinMbPerTick = VOID_MOTOR_INPUT_TRANSFER_FLUID_DRAIN_MIN_MB.get();
+		voidMotorInputMaxStressCapacity = VOID_MOTOR_INPUT_MAX_STRESS_CAPACITY.get();
+		voidMotorOutputMaxStressCapacity = VOID_MOTOR_OUTPUT_MAX_STRESS_CAPACITY.get();
 		voidChestStressBase = VOID_CHEST_STRESS_BASE.get();
 		voidChestStressAtFullChannel = VOID_CHEST_STRESS_AT_FULL_CHANNEL.get();
 		voidChestTransferFluidDrainMbPerTick = VOID_CHEST_TRANSFER_FLUID_DRAIN_MB.get();

@@ -6,11 +6,9 @@ import com.xeli.createvoidway.blocks.voidtypes.VoidStorageKind;
 import com.xeli.createvoidway.blocks.voidtypes.VoidStorageLinkBehaviour;
 import com.xeli.createvoidway.compat.VoidwaySableCompat;
 import com.xeli.createvoidway.config.VoidwayConfig;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
@@ -129,7 +127,7 @@ public final class VoidBatteryLinkMetrics {
 					if (skipPos != null && pos.equals(skipPos) && dimension.equals(contextDimension))
 						return;
 
-					Level partnerLevel = resolveLevel(contextLevel, dimension);
+					Level partnerLevel = VoidNetworkLevels.resolve(contextLevel, dimension);
 					if (partnerLevel == null || !partnerLevel.hasChunkAt(pos))
 						return;
 
@@ -138,16 +136,6 @@ public final class VoidBatteryLinkMetrics {
 						return;
 					consumer.accept(relay, partnerLevel, pos, dimension);
 				});
-	}
-
-	@Nullable
-	private static Level resolveLevel(Level contextLevel, ResourceLocation dimension) {
-		if (contextLevel.dimension().location().equals(dimension))
-			return contextLevel;
-		MinecraftServer server = contextLevel.getServer();
-		if (server == null)
-			return null;
-		return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimension));
 	}
 
 }

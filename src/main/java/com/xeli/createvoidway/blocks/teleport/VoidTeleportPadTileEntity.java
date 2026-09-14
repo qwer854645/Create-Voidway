@@ -7,15 +7,19 @@ import com.xeli.createvoidway.blocks.teleport.VoidTeleportNetworkHandler.PairSta
 import com.xeli.createvoidway.config.VoidChannelStress;
 import com.xeli.createvoidway.config.VoidwayConfig;
 import com.xeli.createvoidway.fluids.VoidTransferFluidTank;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
+import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -38,6 +42,8 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 	@Nullable
 	private BlockPos partnerPos;
 	@Nullable
+	private ResourceLocation partnerDimension;
+	@Nullable
 	private BlockPos boundLinkPos;
 	private int linkDistance;
 
@@ -57,9 +63,11 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 	}
 
 	@Override
-	public void setNetworkState(PairStatus status, int padCount, @Nullable BlockPos partner, int linkDistance) {
+	public void setNetworkState(PairStatus status, int padCount,
+			@Nullable ResourceLocation partnerDimension, @Nullable BlockPos partner, int linkDistance) {
 		this.pairStatus = status;
 		this.padCount = padCount;
+		this.partnerDimension = partnerDimension;
 		this.partnerPos = partner;
 		this.linkDistance = linkDistance;
 		sendData();
@@ -89,6 +97,31 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 	@Override
 	public BlockPos getPartnerPos() {
 		return partnerPos;
+	}
+
+	@Nullable
+	@Override
+	public ResourceLocation getPartnerDimension() {
+		return partnerDimension;
+	}
+
+	@Nullable
+	public VoidTeleportPadTileEntity resolvePartner(boolean forceLoad) {
+		if (partnerPos == null || level == null || pairStatus != PairStatus.VALID)
+			return null;
+		ResourceLocation dimension = partnerDimension != null
+				? partnerDimension
+				: WorldHelper.getDimensionID(level);
+		Level partnerLevel = VoidNetworkLevels.resolve(level, dimension);
+		if (!(partnerLevel instanceof ServerLevel serverPartner))
+			return null;
+		if (forceLoad)
+			serverPartner.getChunkAt(partnerPos);
+		else if (!serverPartner.hasChunkAt(partnerPos))
+			return null;
+		if (!(serverPartner.getBlockEntity(partnerPos) instanceof VoidTeleportPadTileEntity partner))
+			return null;
+		return partner;
 	}
 
 	public boolean hasBindingLink() {
@@ -147,17 +180,13 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 	}
 
 	public boolean canOperate() {
-		return pairStatus == PairStatus.VALID && hasRequiredStress() && partnerReady;
+		// Local readiness only — partner may be unloaded; force-load + verify at teleport time.
+		return pairStatus == PairStatus.VALID && hasRequiredStress();
 	}
 
 	private boolean computePartnerReady() {
-		if (partnerPos == null || level == null || pairStatus != PairStatus.VALID)
-			return false;
-		if (!level.isLoaded(partnerPos))
-			return false;
-		if (!(level.getBlockEntity(partnerPos) instanceof VoidTeleportPadTileEntity partner))
-			return false;
-		return partner.hasRequiredStress();
+		VoidTeleportPadTileEntity partner = resolvePartner(false);
+		return partner != null && partner.hasRequiredStress();
 	}
 
 	public List<Entity> getPendingBatchEntities() {
@@ -202,11 +231,8 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 			return stack;
 
 		ServerLevel serverLevel = (ServerLevel) level;
-		if (!serverLevel.isLoaded(partnerPos))
-			return stack;
-		if (!(serverLevel.getBlockEntity(partnerPos) instanceof VoidTeleportPadTileEntity partner))
-			return stack;
-		if (partner.getPairStatus() != PairStatus.VALID)
+		VoidTeleportPadTileEntity partner = resolvePartner(true);
+		if (partner == null || partner.getPairStatus() != PairStatus.VALID || !partner.hasRequiredStress())
 			return stack;
 
 		if (!simulate) {
@@ -263,9 +289,8 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 		int rate = VoidwayConfig.getVoidTeleportFluidShareMbPerTick();
 		if (!VoidwayConfig.isVoidTeleportFluidSharingEnabled() || partnerPos == null || pairStatus != PairStatus.VALID || !hasRequiredStress())
 			return;
-		if (!serverLevel.isLoaded(partnerPos))
-			return;
-		if (!(serverLevel.getBlockEntity(partnerPos) instanceof VoidTeleportPadTileEntity partner))
+		VoidTeleportPadTileEntity partner = resolvePartner(false);
+		if (partner == null)
 			return;
 
 		int mine = fluidTank.getFluidAmount();
@@ -326,13 +351,14 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 	}
 
 	private boolean tryTeleportBatch(ServerLevel level) {
-		if (partnerPos == null || !level.isLoaded(partnerPos))
-			return false;
-		if (!(level.getBlockEntity(partnerPos) instanceof VoidTeleportPadTileEntity partner))
+		VoidTeleportPadTileEntity partner = resolvePartner(true);
+		if (partner == null)
 			return false;
 		if (partner.getPairStatus() != PairStatus.VALID)
 			return false;
 		if (!partner.hasRequiredStress())
+			return false;
+		if (!(partner.getLevel() instanceof ServerLevel partnerLevel))
 			return false;
 
 		List<Entity> batch = new ArrayList<>();
@@ -349,9 +375,9 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 
 		fluidTank.drain(totalCost, IFluidHandler.FluidAction.EXECUTE);
 		for (Entity entity : batch)
-			VoidTeleportHelper.teleportTo(level, entity, partnerPos, false);
+			VoidTeleportHelper.teleportTo(partnerLevel, entity, partnerPos, false);
 
-		VoidTeleportHelper.playBatchTeleportEffects(level, worldPosition, partnerPos);
+		VoidTeleportHelper.playBatchTeleportEffects(level, worldPosition, partnerLevel, partnerPos);
 		level.sendParticles(ParticleTypes.PORTAL,
 				worldPosition.getX() + 0.5, worldPosition.getY() + VoidTeleportPadBlock.PLATE_HEIGHT + 0.25,
 				worldPosition.getZ() + 0.5,
@@ -369,6 +395,10 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 			partnerPos = BlockPos.of(tag.getLong("PartnerPos"));
 		else
 			partnerPos = null;
+		if (tag.contains("PartnerDimension"))
+			partnerDimension = ResourceLocation.parse(tag.getString("PartnerDimension"));
+		else
+			partnerDimension = null;
 		if (tag.contains("BoundLinkPos"))
 			boundLinkPos = BlockPos.of(tag.getLong("BoundLinkPos"));
 		else
@@ -389,6 +419,8 @@ public class VoidTeleportPadTileEntity extends KineticBlockEntity
 		tag.putInt("PadCount", padCount);
 		if (partnerPos != null)
 			tag.putLong("PartnerPos", partnerPos.asLong());
+		if (partnerDimension != null)
+			tag.putString("PartnerDimension", partnerDimension.toString());
 		if (boundLinkPos != null)
 			tag.putLong("BoundLinkPos", boundLinkPos.asLong());
 		tag.putInt("ChargeTicks", syncedChargeTicks);

@@ -107,31 +107,36 @@ public final class VoidTeleportHelper {
 				&& entity.maxZ > minZ && entity.minZ < maxZ;
 	}
 
-	public static void teleportTo(ServerLevel level, Entity entity, BlockPos destinationPad) {
-		teleportTo(level, entity, destinationPad, true);
+	public static void teleportTo(ServerLevel destinationLevel, Entity entity, BlockPos destinationPad) {
+		teleportTo(destinationLevel, entity, destinationPad, true);
 	}
 
-	public static void teleportTo(ServerLevel level, Entity entity, BlockPos destinationPad, boolean playEffects) {
+	public static void teleportTo(ServerLevel destinationLevel, Entity entity, BlockPos destinationPad, boolean playEffects) {
+		destinationLevel.getChunkAt(destinationPad);
 		double yOffset = VoidTeleportPadBlock.PLATE_HEIGHT + 0.05;
-		Vec3 target = VoidwaySableCompat.globalTeleportPos(level, destinationPad, yOffset);
-		if (entity instanceof ServerPlayer player) {
-			player.teleportTo(level, target.x, target.y, target.z, Collections.emptySet(),
-					player.getYRot(), player.getXRot());
-		} else if (entity instanceof LivingEntity living) {
-			living.teleportTo(target.x, target.y, target.z);
-		} else {
-			entity.moveTo(target.x, target.y, target.z, entity.getYRot(), entity.getXRot());
-			entity.setDeltaMovement(Vec3.ZERO);
-		}
+		Vec3 target = VoidwaySableCompat.globalTeleportPos(destinationLevel, destinationPad, yOffset);
+		teleportEntity(destinationLevel, entity, target);
 		entity.fallDistance = 0;
-		VoidwaySableCompat.inheritSubLevelVelocity(level, entity, target);
+		VoidwaySableCompat.inheritSubLevelVelocity(destinationLevel, entity, target);
 		setContactCooldown(entity);
 		if (playEffects)
-			playTeleportEffects(level, destinationPad, BlockPos.containing(entity.position()));
+			playTeleportEffects(destinationLevel, destinationPad, BlockPos.containing(entity.position()));
 	}
 
-	public static void playBatchTeleportEffects(ServerLevel level, BlockPos sourcePad, BlockPos destinationPad) {
-		playTeleportEffects(level, destinationPad, sourcePad);
+	public static void teleportEntity(ServerLevel destinationLevel, Entity entity, Vec3 target) {
+		if (entity instanceof ServerPlayer player) {
+			player.teleportTo(destinationLevel, target.x, target.y, target.z, Collections.emptySet(),
+					player.getYRot(), player.getXRot());
+			return;
+		}
+		entity.teleportTo(destinationLevel, target.x, target.y, target.z, Collections.emptySet(),
+				entity.getYRot(), entity.getXRot());
+	}
+
+	public static void playBatchTeleportEffects(ServerLevel sourceLevel, BlockPos sourcePad,
+			ServerLevel destinationLevel, BlockPos destinationPad) {
+		playTeleportEffects(destinationLevel, destinationPad, destinationPad);
+		playTeleportEffects(sourceLevel, sourcePad, sourcePad);
 	}
 
 	public static void depositItemOnPad(ServerLevel level, BlockPos padPos, ItemStack stack) {

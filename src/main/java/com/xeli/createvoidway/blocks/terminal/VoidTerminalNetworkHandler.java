@@ -36,8 +36,13 @@ public class VoidTerminalNetworkHandler {
 	}
 
 	public void onUnloadWorld(LevelAccessor world) {
+		// Memory index can be cleared; SavedData keeps terminals for cross-dimension discovery.
 		connections.remove(WorldHelper.getDimensionID(world));
 		Create.LOGGER.debug("Removed Void Terminal Network Space for " + WorldHelper.getDimensionID(world));
+	}
+
+	public void clearAll() {
+		connections.clear();
 	}
 
 	public void addToNetwork(LevelAccessor world, VoidTerminalLinkBehaviour actor) {

@@ -153,9 +153,17 @@ public final class VoidPortalGoggleTooltip {
 		}
 
 		if (connector.getPairStatus() == VoidPortalNetworkHandler.PairStatus.VALID && connector.getLinkDistance() > 0) {
-			new LangBuilder(VoidwayMod.ID)
-					.translate("void_portal.link_distance", connector.getLinkDistance())
-					.forGoggles(tooltip);
+			if (connector.getPartnerDimension() != null
+					&& connector.getLevel() != null
+					&& !connector.getPartnerDimension().equals(connector.getLevel().dimension().location())) {
+				new LangBuilder(VoidwayMod.ID)
+						.translate("void_portal.cross_dimension", connector.getPartnerDimension().toString())
+						.forGoggles(tooltip);
+			} else {
+				new LangBuilder(VoidwayMod.ID)
+						.translate("void_portal.link_distance", connector.getLinkDistance())
+						.forGoggles(tooltip);
+			}
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_portal.stress_demand", connector.getLinkStressDemand())
 					.forGoggles(tooltip);

@@ -20,7 +20,7 @@ public final class VoidwayStress {
 		BlockStressValues.IMPACTS.register(RWBlocks.VOID_PORTAL_STRESS.get(), () -> 0.0);
 		BlockStressValues.IMPACTS.register(RWBlocks.VOID_NODE_TERMINAL.get(), () -> 0.0);
 		BlockStressValues.CAPACITIES.register(RWBlocks.VOID_MOTOR_OUTPUT.get(),
-				() -> (double) VoidMotorOutputTileEntity.OUTPUT_STRESS_CAPACITY);
+				() -> (double) VoidwayConfig.getVoidMotorOutputStressPerRpm());
 		BlockStressValues.RPM.register(RWBlocks.VOID_MOTOR_OUTPUT.get(),
 				new BlockStressValues.GeneratedRpm(VoidMotorOutputTileEntity.MAX_SPEED, true));
 	}

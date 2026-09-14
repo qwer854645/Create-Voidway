@@ -5,13 +5,17 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.voidlink.VoidLinkSlots;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
+import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -30,6 +34,8 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	private int portalCount;
 	@Nullable
 	private BlockPos partnerPos;
+	@Nullable
+	private ResourceLocation partnerDimension;
 	private int linkDistance;
 	private boolean portalBlocksActive;
 	@Nullable
@@ -63,9 +69,10 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 
 	@Override
 	public void setNetworkState(VoidPortalNetworkHandler.PairStatus status, int portalCount,
-			@Nullable BlockPos partner, int linkDistance) {
+			@Nullable ResourceLocation partnerDimension, @Nullable BlockPos partner, int linkDistance) {
 		this.pairStatus = status;
 		this.portalCount = portalCount;
+		this.partnerDimension = partnerDimension;
 		this.partnerPos = partner;
 		this.linkDistance = linkDistance;
 		sendData();
@@ -85,6 +92,31 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	@Override
 	public BlockPos getPartnerPos() {
 		return partnerPos;
+	}
+
+	@Nullable
+	@Override
+	public ResourceLocation getPartnerDimension() {
+		return partnerDimension;
+	}
+
+	@Nullable
+	public VoidPortalConnectorTileEntity resolvePartner(boolean forceLoad) {
+		if (partnerPos == null || level == null || pairStatus != VoidPortalNetworkHandler.PairStatus.VALID)
+			return null;
+		ResourceLocation dimension = partnerDimension != null
+				? partnerDimension
+				: WorldHelper.getDimensionID(level);
+		Level partnerLevel = VoidNetworkLevels.resolve(level, dimension);
+		if (!(partnerLevel instanceof ServerLevel serverPartner))
+			return null;
+		if (forceLoad)
+			serverPartner.getChunkAt(partnerPos);
+		else if (!serverPartner.hasChunkAt(partnerPos))
+			return null;
+		if (!(serverPartner.getBlockEntity(partnerPos) instanceof VoidPortalConnectorTileEntity partner))
+			return null;
+		return partner;
 	}
 
 	@Override
@@ -116,12 +148,12 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	}
 
 	public boolean shouldActivatePortalBlocks() {
+		// Local readiness only — partner may be unloaded; force-load + verify when teleporting.
 		return getActiveShape() != null
 				&& hasFrequencyConfigured()
 				&& pairStatus == VoidPortalNetworkHandler.PairStatus.VALID
 				&& hasRequiredStress()
-				&& hasTransferFluid()
-				&& partnerReady;
+				&& hasTransferFluid();
 	}
 
 	public boolean isPartnerReady() {
@@ -136,13 +168,8 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	}
 
 	private boolean computePartnerReady() {
-		if (partnerPos == null || level == null || pairStatus != VoidPortalNetworkHandler.PairStatus.VALID)
-			return false;
-		if (!level.isLoaded(partnerPos))
-			return false;
-		if (!(level.getBlockEntity(partnerPos) instanceof VoidPortalConnectorTileEntity partner))
-			return false;
-		return partner.isLocallyReady();
+		VoidPortalConnectorTileEntity partner = resolvePartner(false);
+		return partner != null && partner.isLocallyReady();
 	}
 
 	public boolean hasTransferFluid() {
@@ -234,8 +261,10 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		if (level != null && !level.isClientSide)
+		if (level != null && !level.isClientSide) {
+			partnerReady = computePartnerReady();
 			refreshShapeAndNetwork();
+		}
 	}
 
 	@Override
@@ -266,6 +295,11 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		VoidPortalShape destShape = getPartnerShape(serverLevel);
 		if (destShape == null)
 			return;
+		VoidPortalConnectorTileEntity partner = resolvePartner(true);
+		if (partner == null || !(partner.getLevel() instanceof ServerLevel partnerLevel))
+			return;
+		if (!partner.isLocallyReady())
+			return;
 
 		List<Entity> candidates = serverLevel.getEntities((Entity) null, cachedShape.getInteriorBounds(),
 				entity -> VoidPortalHelper.canBeTeleported(entity)
@@ -283,7 +317,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 				continue;
 			}
 
-			if (tryTeleportEntity(serverLevel, entity, fluidTe, destShape)) {
+			if (tryTeleportEntity(serverLevel, partnerLevel, entity, fluidTe, destShape)) {
 				serverLevel.sendParticles(ParticleTypes.PORTAL,
 						entity.getX(), entity.getY(0.5), entity.getZ(),
 						16, 0.2, 0.4, 0.2, 0.05);
@@ -294,20 +328,22 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 
 	@Nullable
 	private VoidPortalShape getPartnerShape(ServerLevel level) {
-		if (partnerPos == null || !level.isLoaded(partnerPos))
-			return null;
-		if (!(level.getBlockEntity(partnerPos) instanceof VoidPortalConnectorTileEntity partner))
+		VoidPortalConnectorTileEntity partner = resolvePartner(true);
+		if (partner == null)
 			return null;
 		if (partner.getPairStatus() != VoidPortalNetworkHandler.PairStatus.VALID)
 			return null;
-		return partner.getCachedShape();
+		VoidPortalShape shape = partner.getCachedShape();
+		if (shape == null && partner.getLevel() != null)
+			shape = VoidPortalShape.findAt(partner.getLevel(), partnerPos);
+		return shape;
 	}
 
-	private boolean tryTeleportEntity(ServerLevel level, Entity entity, VoidPortalFluidTileEntity fluidTe,
-			VoidPortalShape destShape) {
+	private boolean tryTeleportEntity(ServerLevel sourceLevel, ServerLevel destinationLevel, Entity entity,
+			VoidPortalFluidTileEntity fluidTe, VoidPortalShape destShape) {
 		if (!entity.isAlive() || cachedShape == null)
 			return false;
-		if (!VoidPortalHelper.isEntityTouchingPortalBlock(level, cachedShape, entity))
+		if (!VoidPortalHelper.isEntityTouchingPortalBlock(sourceLevel, cachedShape, entity))
 			return false;
 
 		int cost = VoidPortalHelper.getFluidCostFor(entity);
@@ -319,7 +355,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		fluidTe.getFluidTank().drain(cost, IFluidHandler.FluidAction.EXECUTE);
 		fluidTe.setChanged();
 		fluidTe.sendData();
-		VoidPortalHelper.teleportTo(level, entity, destShape);
+		VoidPortalHelper.teleportTo(destinationLevel, entity, destShape);
 		setChanged();
 		return true;
 	}
@@ -333,6 +369,10 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 			partnerPos = BlockPos.of(tag.getLong("PartnerPos"));
 		else
 			partnerPos = null;
+		if (tag.contains("PartnerDimension"))
+			partnerDimension = ResourceLocation.parse(tag.getString("PartnerDimension"));
+		else
+			partnerDimension = null;
 		linkDistance = tag.getInt("LinkDistance");
 		partnerReady = tag.getBoolean("PartnerReady");
 		super.read(tag, registries, clientPacket);
@@ -344,6 +384,8 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		tag.putInt("PortalCount", portalCount);
 		if (partnerPos != null)
 			tag.putLong("PartnerPos", partnerPos.asLong());
+		if (partnerDimension != null)
+			tag.putString("PartnerDimension", partnerDimension.toString());
 		tag.putInt("LinkDistance", linkDistance);
 		tag.putBoolean("PartnerReady", partnerReady);
 		super.write(tag, registries, clientPacket);

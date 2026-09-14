@@ -280,16 +280,17 @@ public record VoidPortalShape(
 
 	@Nullable
 	public static BlockPos mapPortalBlock(VoidPortalShape source, BlockPos sourcePortal, VoidPortalShape dest) {
-		Direction.Axis widthAxis = source.widthAxis();
+		Direction.Axis sourceWidth = source.widthAxis();
+		Direction.Axis destWidth = dest.widthAxis();
 		int destW = mapInteriorCoord(source.left() + 1, source.right() - 1, dest.left() + 1, dest.right() - 1,
-				getCoord(sourcePortal, widthAxis));
+				getCoord(sourcePortal, sourceWidth));
 		if (destW < 0)
 			return null;
 		int destY = mapInteriorCoord(source.bottom() + 1, source.top() - 1, dest.bottom() + 1, dest.top() - 1,
 				sourcePortal.getY());
 		if (destY < 0)
 			return null;
-		return posAt(widthAxis, dest.planeCoord(), destW, destY);
+		return posAt(destWidth, dest.planeCoord(), destW, destY);
 	}
 
 	private static int mapInteriorCoord(int sourceMin, int sourceMax, int destMin, int destMax, int sourceCoord) {

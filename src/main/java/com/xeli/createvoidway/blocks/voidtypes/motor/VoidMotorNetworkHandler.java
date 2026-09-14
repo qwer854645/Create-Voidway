@@ -3,6 +3,8 @@ package com.xeli.createvoidway.blocks.voidtypes.motor;
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
+import com.xeli.createvoidway.config.VoidwayConfig;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
@@ -12,6 +14,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -39,8 +42,11 @@ public class VoidMotorNetworkHandler {
 	}
 
 	public void onUnloadWorld(LevelAccessor world) {
-		connections.remove(WorldHelper.getDimensionID(world));
-		Create.LOGGER.debug("Removed Void Motor Network Space for " + WorldHelper.getDimensionID(world));
+		// Keep frequency indexes across dimension unload for cross-dimension partners.
+	}
+
+	public void clearAll() {
+		connections.clear();
 	}
 
 	public void addToNetwork(LevelAccessor world, VoidMotorLinkBehaviour actor) {
@@ -52,48 +58,42 @@ public class VoidMotorNetworkHandler {
 		if (actor.blockEntity instanceof IVoidMotorRelay relay)
 			relay.clearChannelStress();
 
+		NetworkKey key = actor.getNetworkKey();
 		Set<BlockPos> network = getNetworkOf(world, actor);
 		network.remove(actor.getPos());
 		if (network.isEmpty())
-			networksIn(world).remove(actor.getNetworkKey());
-		else
-			updateNetworkOf(world, actor);
+			networksIn(world).remove(key);
 
 		if (actor.blockEntity instanceof IVoidMotorRelay relay) {
 			relay.setLinkedPartners(0);
 			relay.setReadyPartners(0);
 		}
+
+		// Always refresh remaining members in other dimensions for this key.
+		updateNetworkOf(world, actor);
 	}
 
 	/**
-	 * Sum stress from inputs, then grant each output its requested RPM if the channel can afford it.
-	 * When total demand exceeds supply, all outputs are scaled down proportionally.
+	 * Sum stress from inputs across all dimensions, then grant each loaded output its RPM share.
 	 */
 	public void updateNetworkOf(LevelAccessor world, VoidMotorLinkBehaviour actor) {
-		Set<BlockPos> network = getNetworkOf(world, actor);
+		NetworkKey key = actor.getNetworkKey();
+		pruneDeadLoadedPositions(world, key);
 
-		for (Iterator<BlockPos> iterator = network.iterator(); iterator.hasNext(); ) {
-			BlockPos pos = iterator.next();
-			if (!isAlive(world, pos))
-				iterator.remove();
-		}
-
-		// Partner readiness must be refreshed before stress redistribution.
-		for (BlockPos pos : network) {
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (blockEntity instanceof IVoidMotorRelay relay)
-				relay.updateLinkedPartnerCount(world);
-		}
-
-		float totalStressIn = 0;
+		List<VoidMotorInputTileEntity> inputs = new ArrayList<>();
 		List<VoidMotorOutputTileEntity> outputs = new ArrayList<>();
 
-		for (BlockPos pos : network) {
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (blockEntity instanceof VoidMotorInputTileEntity input && input.isRelayAlive())
+		collectLoadedRelays(world, key, inputs, outputs);
+
+		for (VoidMotorInputTileEntity input : inputs)
+			input.updateLinkedPartnerCount(input.getLevel());
+		for (VoidMotorOutputTileEntity output : outputs)
+			output.updateLinkedPartnerCount(output.getLevel());
+
+		float totalStressIn = 0;
+		for (VoidMotorInputTileEntity input : inputs) {
+			if (input.isRelayAlive())
 				totalStressIn += Math.abs(input.getChannelStressContribution());
-			else if (blockEntity instanceof VoidMotorOutputTileEntity output && output.isRelayAlive())
-				outputs.add(output);
 		}
 
 		float totalDemand = 0;
@@ -109,16 +109,20 @@ public class VoidMotorNetworkHandler {
 			float granted = requested * scale;
 			if (granted != 0)
 				granted = Math.copySign((float) Math.floor(Math.abs(granted)), granted);
+			float stressPerRpm = VoidwayConfig.getVoidMotorOutputStressPerRpm();
+			if (stressPerRpm > 1e-6f) {
+				float maxRpm = VoidwayConfig.getVoidMotorOutputMaxStressCapacity() / stressPerRpm;
+				if (Math.abs(granted) > maxRpm)
+					granted = Math.copySign((float) Math.floor(maxRpm), granted);
+			}
 			output.applyGrantedSpeed(granted);
-			float used = (float) Math.floor(VoidMotorOutputTileEntity.OUTPUT_STRESS_CAPACITY * Math.abs(granted));
+			float used = (float) Math.floor(stressPerRpm * Math.abs(granted));
+			used = Math.min(used, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
 			output.setChannelStressStats(totalStressIn, used);
 		}
 
-		for (BlockPos pos : network) {
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (blockEntity instanceof VoidMotorInputTileEntity input)
-				input.setChannelStressStats(totalStressIn, 0);
-		}
+		for (VoidMotorInputTileEntity input : inputs)
+			input.setChannelStressStats(totalStressIn, 0);
 	}
 
 	public int countLinkedPartners(LevelAccessor world, VoidMotorLinkBehaviour actor, boolean wantOutputs) {
@@ -130,35 +134,74 @@ public class VoidMotorNetworkHandler {
 	}
 
 	private int countPartners(LevelAccessor world, VoidMotorLinkBehaviour actor, boolean wantOutputs, boolean requireReady) {
-		int count = 0;
+		ResourceLocation selfDimension = WorldHelper.getDimensionID(world);
 		BlockPos self = actor.getPos();
-		for (BlockPos pos : getNetworkOf(world, actor)) {
-			if (pos.equals(self) || !isAlive(world, pos))
+		int count = 0;
+
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(actor.getNetworkKey());
+			if (positions == null)
 				continue;
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (!(blockEntity instanceof IVoidMotorRelay relay))
+			ResourceLocation dimension = dimensionEntry.getKey();
+			Level level = VoidNetworkLevels.resolve(world, dimension);
+			if (level == null)
 				continue;
-			if (relay.isVoidMotorOutput() != wantOutputs)
-				continue;
-			if (requireReady && !relay.isLocallyReady())
-				continue;
-			count++;
+
+			for (BlockPos pos : positions) {
+				if (pos.equals(self) && dimension.equals(selfDimension))
+					continue;
+				if (!VoidNetworkLevels.isLoadedAlive(level, pos))
+					continue;
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (!(blockEntity instanceof IVoidMotorRelay relay))
+					continue;
+				if (relay.isVoidMotorOutput() != wantOutputs)
+					continue;
+				if (requireReady && !relay.isLocallyReady())
+					continue;
+				count++;
+			}
 		}
 		return count;
 	}
 
-	private static boolean isAlive(LevelAccessor world, BlockPos pos) {
-		if (!world.hasChunkAt(pos))
-			return false;
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		return blockEntity != null && !blockEntity.isRemoved();
+	private void collectLoadedRelays(LevelAccessor context, NetworkKey key,
+			List<VoidMotorInputTileEntity> inputs, List<VoidMotorOutputTileEntity> outputs) {
+		collectPositions(key, (dimension, pos) -> {
+			Level level = VoidNetworkLevels.resolve(context, dimension);
+			if (level == null || !VoidNetworkLevels.isLoadedAlive(level, pos))
+				return;
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity instanceof VoidMotorInputTileEntity input)
+				inputs.add(input);
+			else if (blockEntity instanceof VoidMotorOutputTileEntity output)
+				outputs.add(output);
+		});
+	}
+
+	private void pruneDeadLoadedPositions(LevelAccessor context, NetworkKey key) {
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
+			if (positions == null)
+				continue;
+			Level level = VoidNetworkLevels.resolve(context, dimensionEntry.getKey());
+			if (level == null)
+				continue;
+			for (Iterator<BlockPos> iterator = positions.iterator(); iterator.hasNext(); ) {
+				BlockPos pos = iterator.next();
+				if (VoidNetworkLevels.shouldDropFromIndex(level, pos))
+					iterator.remove();
+			}
+			if (positions.isEmpty())
+				dimensionEntry.getValue().remove(key);
+		}
 	}
 
 	public void collectPositions(NetworkKey key, BiConsumer<ResourceLocation, BlockPos> consumer) {
 		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
 			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
 			if (positions == null)
-			 continue;
+				continue;
 			ResourceLocation dimension = dimensionEntry.getKey();
 			for (BlockPos pos : positions)
 				consumer.accept(dimension, pos);

@@ -4,11 +4,11 @@ import com.simibubi.create.Create;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
-import com.xeli.createvoidway.compat.VoidwaySableCompat;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels.DimPos;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -47,10 +47,13 @@ public class VoidTeleportNetworkHandler {
 	}
 
 	public void onUnloadWorld(LevelAccessor world) {
-		ResourceLocation id = WorldHelper.getDimensionID(world);
-		connections.remove(id);
-		lastCooldownSweep.remove(id);
-		Create.LOGGER.debug("Removed Void Teleport Network Space for " + id);
+		// Keep frequency indexes across dimension unload for cross-dimension partners.
+		lastCooldownSweep.remove(WorldHelper.getDimensionID(world));
+	}
+
+	public void clearAll() {
+		connections.clear();
+		lastCooldownSweep.clear();
 	}
 
 	public boolean tryBind(LevelAccessor world, BlockPos linkPos, BlockPos padPos) {
@@ -114,7 +117,7 @@ public class VoidTeleportNetworkHandler {
 			network.remove(padPos);
 
 		if (hasFrequencyConfigured(link)) {
-			network.add(linkPos);
+			// Index only the pad — never the link block — so unloaded entries are always pads.
 			if (padPos != null && linkTe.isMutuallyBound())
 				network.add(padPos);
 		}
@@ -190,7 +193,7 @@ public class VoidTeleportNetworkHandler {
 
 		BlockPos linkPos = padTe.getBoundLinkPos();
 		if (linkPos == null) {
-			padTe.setNetworkState(PairStatus.UNPAIRED, 0, null, 0);
+			padTe.setNetworkState(PairStatus.UNPAIRED, 0, null, null, 0);
 			return;
 		}
 
@@ -233,7 +236,7 @@ public class VoidTeleportNetworkHandler {
 			for (NetworkKey key : affected)
 				updateNetwork(world, key);
 			if (world.getBlockEntity(padPos) instanceof IVoidTeleportPad pad)
-				pad.setNetworkState(PairStatus.UNPAIRED, 0, null, 0);
+				pad.setNetworkState(PairStatus.UNPAIRED, 0, null, null, 0);
 		}
 	}
 
@@ -248,32 +251,127 @@ public class VoidTeleportNetworkHandler {
 	}
 
 	private void updateNetwork(LevelAccessor world, NetworkKey key) {
-		Set<BlockPos> network = networksIn(world).get(key);
-		if (network == null)
-			return;
+		pruneDeadLoadedPositions(world, key);
 
-		for (Iterator<BlockPos> iterator = network.iterator(); iterator.hasNext(); ) {
-			BlockPos pos = iterator.next();
-			if (!isPadAlive(world, pos) || !hasValidPadBinding(world, pos))
-				iterator.remove();
-		}
+		List<DimPos> loaded = new ArrayList<>();
+		List<DimPos> unloaded = new ArrayList<>();
+		collectPositions(key, (dimension, pos) -> {
+			Level level = VoidNetworkLevels.resolve(world, dimension);
+			if (level == null || !level.hasChunkAt(pos)) {
+				unloaded.add(new DimPos(dimension, pos));
+				return;
+			}
+			if (!(level.getBlockEntity(pos) instanceof VoidTeleportPadTileEntity))
+				return;
+			if (!hasValidPadBinding(level, pos))
+				return;
+			loaded.add(new DimPos(dimension, pos));
+		});
 
-		PairStatus status = getPairStatus(world, network);
-		int count = network.size();
+		List<DimPos> members = resolvePairMembers(world, loaded, unloaded);
+		PairStatus status = getPairStatus(members.size(), world, members);
+		int count = members.size();
 		int linkDistance = 0;
 		if (status == PairStatus.VALID && count == 2) {
-			Iterator<BlockPos> it = network.iterator();
-			BlockPos first = it.next();
-			BlockPos second = it.next();
-			linkDistance = VoidTeleportLinkMetrics.computeDistanceBlocks(VoidwaySableCompat.levelFrom(world), first, second);
+			DimPos first = members.get(0);
+			DimPos second = members.get(1);
+			Level firstLevel = VoidNetworkLevels.resolve(world, first.dimension());
+			linkDistance = VoidTeleportLinkMetrics.computeDistanceBlocks(
+					firstLevel, first.pos(), second.dimension(), second.pos());
 		}
 
-		for (BlockPos pos : network) {
-			BlockPos partner = status == PairStatus.VALID ? findPartner(pos, network) : null;
-			BlockEntity blockEntity = world.getBlockEntity(pos);
+		for (DimPos padPos : members) {
+			Level level = VoidNetworkLevels.resolve(world, padPos.dimension());
+			if (level == null || !level.hasChunkAt(padPos.pos()))
+				continue;
+			DimPos partner = status == PairStatus.VALID ? findPartner(padPos, members) : null;
+			BlockEntity blockEntity = level.getBlockEntity(padPos.pos());
 			if (blockEntity instanceof IVoidTeleportPad pad)
-				pad.setNetworkState(status, count, partner, linkDistance);
+				pad.setNetworkState(status, count,
+						partner == null ? null : partner.dimension(),
+						partner == null ? null : partner.pos(),
+						linkDistance);
 		}
+	}
+
+	/**
+	 * Prefer loaded pads. When exactly one pad is loaded, trust its stored partner
+	 * (covers unloaded cross-dim partners and ignores stale pre-0.2.13 link indexes).
+	 */
+	private static List<DimPos> resolvePairMembers(LevelAccessor world, List<DimPos> loaded, List<DimPos> unloaded) {
+		if (unloaded.isEmpty())
+			return loaded;
+		if (loaded.size() >= 2)
+			return loaded;
+		if (loaded.size() == 1) {
+			DimPos self = loaded.get(0);
+			DimPos stored = readStoredPartner(world, self);
+			if (stored != null && !stored.equals(self))
+				return List.of(self, stored);
+			List<DimPos> combined = new ArrayList<>(loaded);
+			combined.addAll(unloaded);
+			return combined;
+		}
+		return unloaded;
+	}
+
+	@Nullable
+	private static DimPos readStoredPartner(LevelAccessor world, DimPos self) {
+		Level level = VoidNetworkLevels.resolve(world, self.dimension());
+		if (level == null || !level.hasChunkAt(self.pos()))
+			return null;
+		if (!(level.getBlockEntity(self.pos()) instanceof VoidTeleportPadTileEntity pad))
+			return null;
+		BlockPos partnerPos = pad.getPartnerPos();
+		if (partnerPos == null)
+			return null;
+		ResourceLocation partnerDim = pad.getPartnerDimension();
+		if (partnerDim == null)
+			partnerDim = self.dimension();
+		return new DimPos(partnerDim, partnerPos);
+	}
+
+	private void pruneDeadLoadedPositions(LevelAccessor context, NetworkKey key) {
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
+			if (positions == null)
+				continue;
+			Level level = VoidNetworkLevels.resolve(context, dimensionEntry.getKey());
+			if (level == null)
+				continue;
+			for (Iterator<BlockPos> iterator = positions.iterator(); iterator.hasNext(); ) {
+				BlockPos pos = iterator.next();
+				if (!level.hasChunkAt(pos))
+					continue;
+				if (VoidNetworkLevels.shouldDropFromIndex(level, pos)
+						|| !(level.getBlockEntity(pos) instanceof VoidTeleportPadTileEntity)
+						|| !hasValidPadBinding(level, pos))
+					iterator.remove();
+			}
+			if (positions.isEmpty())
+				dimensionEntry.getValue().remove(key);
+		}
+	}
+
+	private PairStatus getPairStatus(int size, LevelAccessor world, List<DimPos> pads) {
+		if (size < 2)
+			return PairStatus.UNPAIRED;
+		if (size > 2)
+			return PairStatus.CONFLICT;
+		if (!networkHasCompleteFrequency(world, pads))
+			return PairStatus.UNPAIRED;
+		return PairStatus.VALID;
+	}
+
+	private static boolean networkHasCompleteFrequency(LevelAccessor world, List<DimPos> pads) {
+		for (DimPos padPos : pads) {
+			Level level = VoidNetworkLevels.resolve(world, padPos.dimension());
+			if (level == null || !level.hasChunkAt(padPos.pos()))
+				continue; // Unloaded pads stay trusted while indexed.
+			if (!hasFrequencyConfiguredForPad(level, padPos.pos()))
+				return false;
+		}
+		return true;
 	}
 
 	private static boolean hasValidPadBinding(LevelAccessor world, BlockPos padPos) {
@@ -287,25 +385,6 @@ public class VoidTeleportNetworkHandler {
 		if (!(world.getBlockEntity(linkPos) instanceof VoidTeleportLinkTileEntity linkTe))
 			return false;
 		return padTe.isBoundTo(linkPos) && linkTe.isBoundTo(padPos) && areAdjacent(padPos, linkPos);
-	}
-
-	private PairStatus getPairStatus(LevelAccessor world, Set<BlockPos> network) {
-		int size = network.size();
-		if (size < 2)
-			return PairStatus.UNPAIRED;
-		if (size > 2)
-			return PairStatus.CONFLICT;
-		if (!networkHasCompleteFrequency(world, network))
-			return PairStatus.UNPAIRED;
-		return PairStatus.VALID;
-	}
-
-	private static boolean networkHasCompleteFrequency(LevelAccessor world, Set<BlockPos> network) {
-		for (BlockPos padPos : network) {
-			if (!hasFrequencyConfiguredForPad(world, padPos))
-				return false;
-		}
-		return true;
 	}
 
 	private static boolean hasFrequencyConfiguredForPad(LevelAccessor world, BlockPos padPos) {
@@ -352,8 +431,9 @@ public class VoidTeleportNetworkHandler {
 		return behaviour instanceof VoidTeleportLinkBehaviour teleportLink ? teleportLink : null;
 	}
 
-	private static BlockPos findPartner(BlockPos self, Set<BlockPos> network) {
-		for (BlockPos pos : network) {
+	@Nullable
+	private static DimPos findPartner(DimPos self, List<DimPos> pads) {
+		for (DimPos pos : pads) {
 			if (!pos.equals(self))
 				return pos;
 		}
@@ -391,18 +471,11 @@ public class VoidTeleportNetworkHandler {
 		return false;
 	}
 
-	private static boolean isPadAlive(LevelAccessor world, BlockPos pos) {
-		if (!world.hasChunkAt(pos))
-			return false;
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		return blockEntity instanceof VoidTeleportPadTileEntity && !blockEntity.isRemoved();
-	}
-
 	public void collectPositions(NetworkKey key, BiConsumer<ResourceLocation, BlockPos> consumer) {
 		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
 			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
 			if (positions == null)
-			 continue;
+				continue;
 			ResourceLocation dimension = dimensionEntry.getKey();
 			for (BlockPos pos : positions)
 				consumer.accept(dimension, pos);

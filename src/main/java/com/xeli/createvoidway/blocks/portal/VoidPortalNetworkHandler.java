@@ -3,9 +3,10 @@ package com.xeli.createvoidway.blocks.portal;
 import com.simibubi.create.Create;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.xeli.createvoidway.blocks.teleport.VoidTeleportLinkMetrics;
-import com.xeli.createvoidway.compat.VoidwaySableCompat;
 import com.xeli.createvoidway.blocks.voidtypes.VoidLinkBehaviour;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels.DimPos;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,10 +48,13 @@ public class VoidPortalNetworkHandler {
 	}
 
 	public void onUnloadWorld(LevelAccessor world) {
-		ResourceLocation id = WorldHelper.getDimensionID(world);
-		connections.remove(id);
-		lastCooldownSweep.remove(id);
-		Create.LOGGER.debug("Removed Void Portal Network Space for " + id);
+		// Keep frequency indexes across dimension unload for cross-dimension partners.
+		lastCooldownSweep.remove(WorldHelper.getDimensionID(world));
+	}
+
+	public void clearAll() {
+		connections.clear();
+		lastCooldownSweep.clear();
 	}
 
 	public void onPortalBlockChanged(LevelAccessor world, BlockPos pos) {
@@ -92,7 +96,7 @@ public class VoidPortalNetworkHandler {
 
 		if (world.getBlockEntity(connectorPos) instanceof VoidPortalConnectorTileEntity connector && !world.isClientSide()) {
 			if (!network.contains(connectorPos))
-				connector.setNetworkState(PairStatus.UNPAIRED, 0, null, 0);
+				connector.setNetworkState(PairStatus.UNPAIRED, 0, null, null, 0);
 			connector.refreshPortalBlocks();
 		}
 	}
@@ -124,41 +128,108 @@ public class VoidPortalNetworkHandler {
 		for (NetworkKey key : affected)
 			updateNetwork(world, key);
 		if (world.getBlockEntity(connectorPos) instanceof IVoidPortalEndpoint portal)
-			portal.setNetworkState(PairStatus.UNPAIRED, 0, null, 0);
+			portal.setNetworkState(PairStatus.UNPAIRED, 0, null, null, 0);
 	}
 
 	private void updateNetwork(LevelAccessor world, NetworkKey key) {
-		Set<BlockPos> network = networksIn(world).get(key);
-		if (network == null)
-			return;
+		pruneDeadLoadedPositions(world, key);
 
-		for (Iterator<BlockPos> iterator = network.iterator(); iterator.hasNext(); ) {
-			BlockPos pos = iterator.next();
-			if (!isPortalAlive(world, pos) || !isValidPortal(world, pos))
-				iterator.remove();
-		}
+		List<DimPos> loaded = new ArrayList<>();
+		List<DimPos> unloaded = new ArrayList<>();
+		collectPositions(key, (dimension, pos) -> {
+			Level level = VoidNetworkLevels.resolve(world, dimension);
+			if (level == null || !level.hasChunkAt(pos)) {
+				unloaded.add(new DimPos(dimension, pos));
+				return;
+			}
+			if (!isValidPortal(level, pos))
+				return;
+			loaded.add(new DimPos(dimension, pos));
+		});
 
-		PairStatus status = getPairStatus(world, network);
-		int count = network.size();
+		List<DimPos> members = resolvePairMembers(world, loaded, unloaded);
+		PairStatus status = getPairStatus(members.size());
+		int count = members.size();
 		int linkDistance = 0;
 		if (status == PairStatus.VALID && count == 2) {
-			Iterator<BlockPos> it = network.iterator();
-			BlockPos first = it.next();
-			BlockPos second = it.next();
+			DimPos first = members.get(0);
+			DimPos second = members.get(1);
+			Level firstLevel = VoidNetworkLevels.resolve(world, first.dimension());
 			linkDistance = VoidTeleportLinkMetrics.computeDistanceBlocks(
-					VoidwaySableCompat.levelFrom(world), first, second);
+					firstLevel, first.pos(), second.dimension(), second.pos());
 		}
 
-		for (BlockPos pos : network) {
-			BlockPos partner = status == PairStatus.VALID ? findPartner(pos, network) : null;
-			BlockEntity blockEntity = world.getBlockEntity(pos);
+		for (DimPos portalPos : members) {
+			Level level = VoidNetworkLevels.resolve(world, portalPos.dimension());
+			if (level == null || !level.hasChunkAt(portalPos.pos()))
+				continue;
+			DimPos partner = status == PairStatus.VALID ? findPartner(portalPos, members) : null;
+			BlockEntity blockEntity = level.getBlockEntity(portalPos.pos());
 			if (blockEntity instanceof IVoidPortalEndpoint portal)
-				portal.setNetworkState(status, count, partner, linkDistance);
+				portal.setNetworkState(status, count,
+						partner == null ? null : partner.dimension(),
+						partner == null ? null : partner.pos(),
+						linkDistance);
 		}
 
-		for (BlockPos pos : network) {
-			if (world.getBlockEntity(pos) instanceof VoidPortalConnectorTileEntity connector)
+		for (DimPos portalPos : members) {
+			Level level = VoidNetworkLevels.resolve(world, portalPos.dimension());
+			if (level != null && level.hasChunkAt(portalPos.pos())
+					&& level.getBlockEntity(portalPos.pos()) instanceof VoidPortalConnectorTileEntity connector)
 				connector.refreshPortalBlocks();
+		}
+	}
+
+	private static List<DimPos> resolvePairMembers(LevelAccessor world, List<DimPos> loaded, List<DimPos> unloaded) {
+		if (unloaded.isEmpty())
+			return loaded;
+		if (loaded.size() >= 2)
+			return loaded;
+		if (loaded.size() == 1) {
+			DimPos self = loaded.get(0);
+			DimPos stored = readStoredPartner(world, self);
+			if (stored != null && !stored.equals(self))
+				return List.of(self, stored);
+			List<DimPos> combined = new ArrayList<>(loaded);
+			combined.addAll(unloaded);
+			return combined;
+		}
+		return unloaded;
+	}
+
+	@Nullable
+	private static DimPos readStoredPartner(LevelAccessor world, DimPos self) {
+		Level level = VoidNetworkLevels.resolve(world, self.dimension());
+		if (level == null || !level.hasChunkAt(self.pos()))
+			return null;
+		if (!(level.getBlockEntity(self.pos()) instanceof VoidPortalConnectorTileEntity portal))
+			return null;
+		BlockPos partnerPos = portal.getPartnerPos();
+		if (partnerPos == null)
+			return null;
+		ResourceLocation partnerDim = portal.getPartnerDimension();
+		if (partnerDim == null)
+			partnerDim = self.dimension();
+		return new DimPos(partnerDim, partnerPos);
+	}
+
+	private void pruneDeadLoadedPositions(LevelAccessor context, NetworkKey key) {
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
+			if (positions == null)
+				continue;
+			Level level = VoidNetworkLevels.resolve(context, dimensionEntry.getKey());
+			if (level == null)
+				continue;
+			for (Iterator<BlockPos> iterator = positions.iterator(); iterator.hasNext(); ) {
+				BlockPos pos = iterator.next();
+				if (!level.hasChunkAt(pos))
+					continue;
+				if (VoidNetworkLevels.shouldDropFromIndex(level, pos) || !isValidPortal(level, pos))
+					iterator.remove();
+			}
+			if (positions.isEmpty())
+				dimensionEntry.getValue().remove(key);
 		}
 	}
 
@@ -171,15 +242,7 @@ public class VoidPortalNetworkHandler {
 		return link != null && hasFrequencyConfigured(link);
 	}
 
-	private static boolean isPortalAlive(LevelAccessor world, BlockPos pos) {
-		if (!world.hasChunkAt(pos))
-			return false;
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		return blockEntity instanceof VoidPortalConnectorTileEntity && !blockEntity.isRemoved();
-	}
-
-	private PairStatus getPairStatus(LevelAccessor world, Set<BlockPos> network) {
-		int size = network.size();
+	private PairStatus getPairStatus(int size) {
 		if (size < 2)
 			return PairStatus.UNPAIRED;
 		if (size > 2)
@@ -197,8 +260,9 @@ public class VoidPortalNetworkHandler {
 		return behaviour instanceof VoidPortalLinkBehaviour portalLink ? portalLink : null;
 	}
 
-	private static BlockPos findPartner(BlockPos self, Set<BlockPos> network) {
-		for (BlockPos pos : network) {
+	@Nullable
+	private static DimPos findPartner(DimPos self, List<DimPos> portals) {
+		for (DimPos pos : portals) {
 			if (!pos.equals(self))
 				return pos;
 		}
@@ -229,7 +293,7 @@ public class VoidPortalNetworkHandler {
 				if (!world.hasChunkAt(pos))
 					continue;
 				VoidPortalShape shape = VoidPortalShape.findAt(world, pos);
-				if (shape != null && world instanceof net.minecraft.world.level.Level level
+				if (shape != null && world instanceof Level level
 						&& VoidPortalHelper.isEntityTouchingPortalBlock(level, shape, entity))
 					return true;
 			}
@@ -241,7 +305,7 @@ public class VoidPortalNetworkHandler {
 		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
 			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
 			if (positions == null)
-			 continue;
+				continue;
 			ResourceLocation dimension = dimensionEntry.getKey();
 			for (BlockPos pos : positions)
 				consumer.accept(dimension, pos);

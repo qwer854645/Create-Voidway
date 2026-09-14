@@ -11,6 +11,9 @@ public class CommonEvents {
 
 	public static void onLoad(LevelEvent.Load event) {
 		LevelAccessor level = event.getLevel();
+		if (level.isClientSide())
+			return;
+
 		VoidwayMod.VOID_MOTOR_LINK_NETWORK_HANDLER.onLoadWorld(level);
 		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.onLoadWorld(level);
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onLoadWorld(level);
@@ -25,14 +28,21 @@ public class CommonEvents {
 	}
 
 	public static void onUnload(LevelEvent.Unload event) {
-		VoidwayMod.VOID_MOTOR_LINK_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
-		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
+		if (event.getLevel().isClientSide())
+			return;
+
+		// Dimension unload must NOT wipe frequency indexes — cross-dim partners stay
+		// registered until destroyed or the server stops. Only clear cooldown sweeps.
 		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
-		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.onUnloadWorld(event.getLevel());
 	}
 
 	public static void onServerStopping(ServerStoppingEvent event) {
+		VoidwayMod.VOID_MOTOR_LINK_NETWORK_HANDLER.clearAll();
+		VoidwayMod.VOID_STORAGE_LINK_NETWORK_HANDLER.clearAll();
+		VoidwayMod.VOID_TELEPORT_NETWORK_HANDLER.clearAll();
+		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.clearAll();
+		VoidwayMod.VOID_TERMINAL_NETWORK_HANDLER.clearAll();
 		VoidwaySavedData.clearStatics();
 	}
 

@@ -7,6 +7,7 @@ import com.simibubi.create.content.kinetics.motor.KineticScrollValueBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.xeli.createvoidway.VoidwayMod;
+import com.xeli.createvoidway.config.VoidwayConfig;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
 import com.xeli.createvoidway.voidlink.VoidLinkSlot;
@@ -30,7 +31,6 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 
 	public static final int DEFAULT_SPEED = 16;
 	public static final int MAX_SPEED = 256;
-	public static final float OUTPUT_STRESS_CAPACITY = 4.0f;
 
 	protected VoidMotorLinkBehaviour link;
 	protected int linkedPartners;
@@ -86,7 +86,8 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	public float getRequestedChannelStress() {
 		if (generatedSpeed == null)
 			return 0;
-		return (float) Math.floor(OUTPUT_STRESS_CAPACITY * Math.abs(generatedSpeed.getValue()));
+		float raw = (float) Math.floor(VoidwayConfig.getVoidMotorOutputStressPerRpm() * Math.abs(generatedSpeed.getValue()));
+		return Math.min(raw, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
 	}
 
 	public int getRequestedRpm() {

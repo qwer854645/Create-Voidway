@@ -2,9 +2,11 @@ package com.xeli.createvoidway.blocks.voidtypes;
 
 import com.simibubi.create.Create;
 import com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorNetworkHandler.NetworkKey;
+import com.xeli.createvoidway.voidlink.VoidNetworkLevels;
 import net.createmod.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -31,8 +33,11 @@ public class VoidStorageNetworkHandler {
 	}
 
 	public void onUnloadWorld(LevelAccessor world) {
-		connections.remove(WorldHelper.getDimensionID(world));
-		Create.LOGGER.debug("Removed Void Storage Network Space for " + WorldHelper.getDimensionID(world));
+		// Keep frequency indexes across dimension unload for cross-dimension partners.
+	}
+
+	public void clearAll() {
+		connections.clear();
 	}
 
 	public void addToNetwork(LevelAccessor world, VoidStorageLinkBehaviour actor) {
@@ -41,33 +46,33 @@ public class VoidStorageNetworkHandler {
 	}
 
 	public void removeFromNetwork(LevelAccessor world, VoidStorageLinkBehaviour actor) {
+		NetworkKey key = actor.getNetworkKey();
 		Set<BlockPos> network = getNetworkOf(world, actor);
 		network.remove(actor.getPos());
 		if (network.isEmpty())
-			networksIn(world).remove(actor.getNetworkKey());
-		else
-			updateNetworkOf(world, actor);
+			networksIn(world).remove(key);
 
 		if (actor.blockEntity instanceof IVoidStorageRelay relay) {
 			relay.setLinkedPartners(0);
 			relay.setReadyPartners(0);
 		}
+
+		// Always refresh remaining members in other dimensions for this key.
+		updateNetworkOf(world, actor);
 	}
 
 	public void updateNetworkOf(LevelAccessor world, VoidStorageLinkBehaviour actor) {
-		Set<BlockPos> network = getNetworkOf(world, actor);
+		NetworkKey key = actor.getNetworkKey();
+		pruneDeadLoadedPositions(world, key);
 
-		for (Iterator<BlockPos> iterator = network.iterator(); iterator.hasNext(); ) {
-			BlockPos pos = iterator.next();
-			if (!isAlive(world, pos))
-				iterator.remove();
-		}
-
-		for (BlockPos pos : network) {
-			BlockEntity blockEntity = world.getBlockEntity(pos);
+		collectPositions(key, (dimension, pos) -> {
+			Level level = VoidNetworkLevels.resolve(world, dimension);
+			if (level == null || !level.hasChunkAt(pos))
+				return;
+			BlockEntity blockEntity = level.getBlockEntity(pos);
 			if (blockEntity instanceof IVoidStorageRelay relay)
-				relay.updateLinkedPartnerCount(world);
-		}
+				relay.updateLinkedPartnerCount(level);
+		});
 	}
 
 	public int countLinkedPartners(LevelAccessor world, VoidStorageLinkBehaviour actor) {
@@ -84,38 +89,62 @@ public class VoidStorageNetworkHandler {
 
 		boolean wantOutputs = !self.isStorageOutput();
 		VoidStorageKind kind = self.getStorageKind();
-		int count = 0;
+		ResourceLocation selfDimension = WorldHelper.getDimensionID(world);
 		BlockPos selfPos = actor.getPos();
+		int count = 0;
 
-		for (BlockPos pos : getNetworkOf(world, actor)) {
-			if (pos.equals(selfPos) || !isAlive(world, pos))
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(actor.getNetworkKey());
+			if (positions == null)
 				continue;
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (!(blockEntity instanceof IVoidStorageRelay relay))
+			ResourceLocation dimension = dimensionEntry.getKey();
+			Level level = VoidNetworkLevels.resolve(world, dimension);
+			if (level == null)
 				continue;
-			if (relay.getStorageKind() != kind)
-				continue;
-			if (relay.isStorageOutput() != wantOutputs)
-				continue;
-			if (requireReady && !relay.isLocallyReady())
-				continue;
-			count++;
+
+			for (BlockPos pos : positions) {
+				if (pos.equals(selfPos) && dimension.equals(selfDimension))
+					continue;
+				if (!VoidNetworkLevels.isLoadedAlive(level, pos))
+					continue;
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (!(blockEntity instanceof IVoidStorageRelay relay))
+					continue;
+				if (relay.getStorageKind() != kind)
+					continue;
+				if (relay.isStorageOutput() != wantOutputs)
+					continue;
+				if (requireReady && !relay.isLocallyReady())
+					continue;
+				count++;
+			}
 		}
 		return count;
 	}
 
-	private static boolean isAlive(LevelAccessor world, BlockPos pos) {
-		if (!world.hasChunkAt(pos))
-			return false;
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		return blockEntity != null && !blockEntity.isRemoved();
+	private void pruneDeadLoadedPositions(LevelAccessor context, NetworkKey key) {
+		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
+			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
+			if (positions == null)
+				continue;
+			Level level = VoidNetworkLevels.resolve(context, dimensionEntry.getKey());
+			if (level == null)
+				continue;
+			for (Iterator<BlockPos> iterator = positions.iterator(); iterator.hasNext(); ) {
+				BlockPos pos = iterator.next();
+				if (VoidNetworkLevels.shouldDropFromIndex(level, pos))
+					iterator.remove();
+			}
+			if (positions.isEmpty())
+				dimensionEntry.getValue().remove(key);
+		}
 	}
 
 	public void collectPositions(NetworkKey key, BiConsumer<ResourceLocation, BlockPos> consumer) {
 		for (Map.Entry<ResourceLocation, Map<NetworkKey, Set<BlockPos>>> dimensionEntry : connections.entrySet()) {
 			Set<BlockPos> positions = dimensionEntry.getValue().get(key);
 			if (positions == null)
-			 continue;
+				continue;
 			ResourceLocation dimension = dimensionEntry.getKey();
 			for (BlockPos pos : positions)
 				consumer.accept(dimension, pos);

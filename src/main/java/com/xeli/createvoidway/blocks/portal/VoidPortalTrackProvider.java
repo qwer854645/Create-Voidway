@@ -31,34 +31,43 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 			return null;
 		if (sourceConnector.getPairStatus() != VoidPortalNetworkHandler.PairStatus.VALID)
 			return null;
-		if (!sourceConnector.shouldActivatePortalBlocks())
+
+		VoidPortalConnectorTileEntity destConnector = sourceConnector.resolvePartner(true);
+		if (destConnector == null)
 			return null;
+		if (!(destConnector.getLevel() instanceof ServerLevel destLevel))
+			return null;
+		if (!destConnector.isLocallyReady())
+			return null;
+
+		// Force-loaded destinations may not have ticked yet — fill portal blocks now.
+		destConnector.refreshPortalBlocks();
 
 		BlockPos partnerPos = sourceConnector.getPartnerPos();
 		if (partnerPos == null)
 			return null;
-		if (!(level.getBlockEntity(partnerPos) instanceof VoidPortalConnectorTileEntity destConnector))
-			return null;
-		if (!destConnector.shouldActivatePortalBlocks())
-			return null;
 
 		VoidPortalShape destShape = destConnector.getCachedShape();
 		if (destShape == null)
-			destShape = VoidPortalShape.findAt(level, partnerPos);
+			destShape = VoidPortalShape.findAt(destLevel, partnerPos);
 		if (destShape == null)
 			return null;
 
 		BlockPos destPortalPos = VoidPortalShape.mapPortalBlock(sourceShape, portalPos, destShape);
-		if (destPortalPos == null || !level.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
+		if (destPortalPos == null || !destLevel.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
 			return null;
 
-		Direction.Axis portalAxis = portalState.getValue(BlockStateProperties.HORIZONTAL_AXIS);
+		// Match Create nether portals: exit facing uses the destination portal axis.
+		BlockState destPortalState = destLevel.getBlockState(destPortalPos);
+		Direction.Axis portalAxis = destPortalState.hasProperty(BlockStateProperties.HORIZONTAL_AXIS)
+				? destPortalState.getValue(BlockStateProperties.HORIZONTAL_AXIS)
+				: portalState.getValue(BlockStateProperties.HORIZONTAL_AXIS);
 		Direction targetDirection = inboundTrack.getFace();
 		if (targetDirection.getAxis() == portalAxis)
 			targetDirection = targetDirection.getClockWise();
 
 		BlockPos exitTrackPos = destPortalPos.relative(targetDirection);
-		return new Exit(level, new BlockFace(exitTrackPos, targetDirection.getOpposite()));
+		return new Exit(destLevel, new BlockFace(exitTrackPos, targetDirection.getOpposite()));
 	}
 
 	public static void register() {

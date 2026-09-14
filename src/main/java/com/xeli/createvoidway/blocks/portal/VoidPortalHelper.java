@@ -5,18 +5,14 @@ import com.xeli.createvoidway.blocks.teleport.VoidTeleportHelper;
 import com.xeli.createvoidway.compat.VoidwaySableCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-
-import java.util.Collections;
 
 public final class VoidPortalHelper {
 
@@ -73,24 +69,16 @@ public final class VoidPortalHelper {
 		return false;
 	}
 
-	public static void teleportTo(ServerLevel level, Entity entity, VoidPortalShape destination) {
+	public static void teleportTo(ServerLevel destinationLevel, Entity entity, VoidPortalShape destination) {
+		destinationLevel.getChunkAt(destination.getSpawnPos());
 		BlockPos spawn = destination.getSpawnPos();
-		Vec3 target = VoidwaySableCompat.globalTeleportPos(level, spawn, 0.05);
-		if (entity instanceof ServerPlayer player) {
-			player.teleportTo(level, target.x, target.y, target.z, Collections.emptySet(),
-					player.getYRot(), player.getXRot());
-		} else if (entity instanceof LivingEntity living) {
-			living.teleportTo(target.x, target.y, target.z);
-		} else {
-			entity.moveTo(target.x, target.y, target.z, entity.getYRot(), entity.getXRot());
-			entity.setDeltaMovement(Vec3.ZERO);
-		}
+		Vec3 target = VoidwaySableCompat.globalTeleportPos(destinationLevel, spawn, 0.05);
+		VoidTeleportHelper.teleportEntity(destinationLevel, entity, target);
 		entity.fallDistance = 0;
-		VoidwaySableCompat.inheritSubLevelVelocity(level, entity, target);
+		VoidwaySableCompat.inheritSubLevelVelocity(destinationLevel, entity, target);
 		VoidTeleportHelper.setContactCooldown(entity);
-		level.playSound(null, spawn, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 0.6f, 1.2f);
-		level.playSound(null, BlockPos.containing(entity.position()), SoundEvents.ENDERMAN_TELEPORT,
-				SoundSource.PLAYERS, 0.5f, 1f);
+		destinationLevel.playSound(null, spawn, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 0.6f, 1.2f);
+		destinationLevel.playSound(null, spawn, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1f);
 	}
 
 }

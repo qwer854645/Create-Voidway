@@ -78,9 +78,17 @@ public final class VoidTeleportGoggleTooltip {
 
 		int speed = (int) Math.abs(pad.getTheoreticalSpeed());
 		if (pad.getPairStatus() == VoidTeleportNetworkHandler.PairStatus.VALID && pad.getLinkDistance() > 0) {
-			new LangBuilder(VoidwayMod.ID)
-					.translate("void_teleport_pad.link_distance", pad.getLinkDistance())
-					.forGoggles(tooltip);
+			if (pad.getPartnerDimension() != null
+					&& pad.getLevel() != null
+					&& !pad.getPartnerDimension().equals(pad.getLevel().dimension().location())) {
+				new LangBuilder(VoidwayMod.ID)
+						.translate("void_teleport_pad.cross_dimension", pad.getPartnerDimension().toString())
+						.forGoggles(tooltip);
+			} else {
+				new LangBuilder(VoidwayMod.ID)
+						.translate("void_teleport_pad.link_distance", pad.getLinkDistance())
+						.forGoggles(tooltip);
+			}
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_teleport_pad.stress_demand", pad.getLinkStressDemand())
 					.forGoggles(tooltip);

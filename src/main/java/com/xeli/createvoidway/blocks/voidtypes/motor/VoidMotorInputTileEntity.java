@@ -23,7 +23,6 @@ import java.util.List;
 public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implements IHaveGoggleInformation {
 
 	public static final int FLUID_CAPACITY = 4000;
-	public static final float RELAY_STRESS_IMPACT = 8.0f;
 
 	private final VoidTransferFluidTank fluidTank = new VoidTransferFluidTank(FLUID_CAPACITY, () -> {
 		if (level == null || level.isClientSide)
@@ -87,14 +86,16 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	public float getPotentialChannelStressContribution() {
 		if (getTheoreticalSpeed() == 0)
 			return 0;
-		return (float) Math.floor(getReceivedStress() * VoidwayConfig.getInputNetworkContributionFraction());
+		float contribution = (float) Math.floor(getReceivedStress() * VoidwayConfig.getInputNetworkContributionFraction());
+		return Math.min(contribution, VoidwayConfig.getVoidMotorInputMaxStressCapacity());
 	}
 
 	public float getReceivedStress() {
 		float speed = getTheoreticalSpeed();
 		if (speed == 0)
 			return 0;
-		return RELAY_STRESS_IMPACT * Math.abs(speed);
+		float raw = VoidwayConfig.getVoidMotorInputStressPerRpm() * Math.abs(speed);
+		return Math.min(raw, VoidwayConfig.getVoidMotorInputMaxStressCapacity());
 	}
 
 	public float getLocalStressConsumption() {
