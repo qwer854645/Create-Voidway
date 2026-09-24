@@ -1,9 +1,11 @@
 package com.xeli.createvoidway.blocks.voidtypes.chest;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.BooleanSupplier;
 
 public class VoidChestFilteredHandler implements IItemHandlerModifiable {
 
@@ -15,10 +17,21 @@ public class VoidChestFilteredHandler implements IItemHandlerModifiable {
 
 	private final IItemHandlerModifiable delegate;
 	private final Mode mode;
+	@Nullable
+	private final BooleanSupplier canOperate;
 
 	public VoidChestFilteredHandler(VoidChestInventory inventory, Mode mode) {
+		this(inventory, mode, null);
+	}
+
+	public VoidChestFilteredHandler(VoidChestInventory inventory, Mode mode, @Nullable BooleanSupplier canOperate) {
 		this.delegate = inventory;
 		this.mode = mode;
+		this.canOperate = canOperate;
+	}
+
+	private boolean isOperable() {
+		return canOperate == null || canOperate.getAsBoolean();
 	}
 
 	@Override
@@ -38,14 +51,14 @@ public class VoidChestFilteredHandler implements IItemHandlerModifiable {
 
 	@Override
 	public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-		if (mode != Mode.INSERT_ONLY)
+		if (mode != Mode.INSERT_ONLY || !isOperable())
 			return stack;
 		return delegate.insertItem(slot, stack, simulate);
 	}
 
 	@Override
 	public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-		if (mode != Mode.EXTRACT_ONLY)
+		if (mode != Mode.EXTRACT_ONLY || !isOperable())
 			return ItemStack.EMPTY;
 		return delegate.extractItem(slot, amount, simulate);
 	}
@@ -57,7 +70,7 @@ public class VoidChestFilteredHandler implements IItemHandlerModifiable {
 
 	@Override
 	public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-		return delegate.isItemValid(slot, stack);
+		return isOperable() && mode == Mode.INSERT_ONLY && delegate.isItemValid(slot, stack);
 	}
 
 }

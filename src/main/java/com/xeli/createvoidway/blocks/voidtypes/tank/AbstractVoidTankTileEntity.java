@@ -144,7 +144,8 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 	}
 
 	public boolean canOperate() {
-		return isLocallyReady() && readyPartners > 0;
+		// Channel tank is keyed by frequency — no partner machine required.
+		return isLocallyReady();
 	}
 
 	public VoidTank getFluidStorage() {
@@ -154,13 +155,10 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 	}
 
 	public IFluidHandler getStorageFluidHandler() {
-		VoidTankFilteredFluidHandler.Mode mode = VoidTankFilteredFluidHandler.Mode.BLOCKED;
-		if (canOperate()) {
-			mode = isVoidTankInput()
-					? VoidTankFilteredFluidHandler.Mode.INSERT_ONLY
-					: VoidTankFilteredFluidHandler.Mode.EXTRACT_ONLY;
-		}
-		return new VoidTankFilteredFluidHandler(getFluidStorage(), mode);
+		VoidTankFilteredFluidHandler.Mode mode = isVoidTankInput()
+				? VoidTankFilteredFluidHandler.Mode.INSERT_ONLY
+				: VoidTankFilteredFluidHandler.Mode.EXTRACT_ONLY;
+		return new VoidTankFilteredFluidHandler(getFluidStorage(), mode, this::canOperate);
 	}
 
 	@Nullable

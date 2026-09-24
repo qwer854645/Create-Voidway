@@ -50,6 +50,8 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 	protected int linkedPartners;
 	protected int readyPartners;
 	private boolean wasLocallyReady;
+	/** Avoid spamming the player when the GUI closes due to lost operating conditions. */
+	private boolean warnedChannelOffline;
 
 	private int openCount;
 	public LerpedFloat lid = LerpedFloat.linear().startWithValue(0);
@@ -198,7 +200,19 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 	}
 
 	public boolean canOperate() {
-		return isLocallyReady() && readyPartners > 0;
+		// Channel inventory is keyed by frequency — no partner machine required.
+		return isLocallyReady();
+	}
+
+	public boolean consumeChannelOfflineWarning() {
+		if (warnedChannelOffline)
+			return false;
+		warnedChannelOffline = true;
+		return true;
+	}
+
+	public void clearChannelOfflineWarning() {
+		warnedChannelOffline = false;
 	}
 
 	public FluidTank getFluidTank() {
@@ -220,12 +234,11 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 	}
 
 	public IItemHandler getAutomationHandler() {
-		VoidChestFilteredHandler.Mode mode = VoidChestFilteredHandler.Mode.BLOCKED;
-		if (canOperate()) {
-			mode = isVoidChestInput() ? VoidChestFilteredHandler.Mode.INSERT_ONLY
-					: VoidChestFilteredHandler.Mode.EXTRACT_ONLY;
-		}
-		return new VoidChestFilteredHandler(getItemStorage(), mode);
+		VoidChestFilteredHandler.Mode mode = isVoidChestInput()
+				? VoidChestFilteredHandler.Mode.INSERT_ONLY
+				: VoidChestFilteredHandler.Mode.EXTRACT_ONLY;
+		// Live canOperate check so cached capabilities stop transferring when conditions drop.
+		return new VoidChestFilteredHandler(getItemStorage(), mode, this::canOperate);
 	}
 
 	@Override
@@ -293,6 +306,8 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 			notifyStorageNetworkIfNeeded();
 			if (hasRequiredStress())
 				fluidTank.drain(getTransferFluidDrainThisTick(), IFluidHandler.FluidAction.EXECUTE);
+			if (canOperate())
+				clearChannelOfflineWarning();
 			notifyStorageNetworkIfNeeded();
 		}
 		lid.chase(openCount > 0 ? 1 : 0, 0.1f, LerpedFloat.Chaser.LINEAR);

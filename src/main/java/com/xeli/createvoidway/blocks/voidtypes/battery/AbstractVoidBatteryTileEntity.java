@@ -178,7 +178,8 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 	}
 
 	public boolean canOperate() {
-		if (!isLocallyReady() || readyPartners <= 0)
+		// Channel battery is keyed by frequency — no partner machine required.
+		if (!isLocallyReady())
 			return false;
 		if (networkUsesEfficientTransfer())
 			return hasSufficientTransferFluid();
@@ -186,7 +187,10 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 	}
 
 	public boolean networkUsesEfficientTransfer() {
-		return VoidBatteryLinkMetrics.networkHasFluidOnBothSides(this);
+		if (VoidBatteryLinkMetrics.networkHasFluidOnBothSides(this))
+			return true;
+		// Solo (no opposite-side partner): local fluid enables lossless channel access.
+		return linkedPartners <= 0 && hasSufficientTransferFluid();
 	}
 
 	public boolean usesEfficientTransfer() {
@@ -199,7 +203,7 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 	}
 
 	public boolean isDryTransferMode() {
-		return hasRequiredStress() && !networkUsesEfficientTransfer();
+		return hasRequiredStress() && canOperate() && !networkUsesEfficientTransfer();
 	}
 
 	public float getDryTransferLossFraction() {
@@ -239,15 +243,12 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 	}
 
 	public IEnergyStorage getEnergyHandler() {
-		VoidBatteryFilteredEnergyStorage.Mode mode = VoidBatteryFilteredEnergyStorage.Mode.BLOCKED;
-		float transferLoss = 0f;
-		if (canOperate()) {
-			mode = isVoidBatteryInput() ? VoidBatteryFilteredEnergyStorage.Mode.INSERT_ONLY
-					: VoidBatteryFilteredEnergyStorage.Mode.EXTRACT_ONLY;
-			if (!networkUsesEfficientTransfer())
-				transferLoss = getDryTransferLossFraction();
-		}
-		return new VoidBatteryFilteredEnergyStorage(getBattery(), mode, transferLoss);
+		VoidBatteryFilteredEnergyStorage.Mode mode = isVoidBatteryInput()
+				? VoidBatteryFilteredEnergyStorage.Mode.INSERT_ONLY
+				: VoidBatteryFilteredEnergyStorage.Mode.EXTRACT_ONLY;
+		return new VoidBatteryFilteredEnergyStorage(getBattery(), mode,
+				() -> networkUsesEfficientTransfer() ? 0f : getDryTransferLossFraction(),
+				this::canOperate);
 	}
 
 	@Override

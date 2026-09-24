@@ -30,6 +30,7 @@
   "createvoidway.void_chest.insufficient_transfer_fluid": "虚空箱子需要左右两侧接入虚空传送液才能工作",
   "createvoidway.void_chest.transfer_fluid_drain_per_tick": "虚空传送液消耗：%s mB/t",
   "createvoidway.void_chest.no_transfer_fluid": "虚空传送液不足，无法工作",
+  "createvoidway.void_chest.channel_offline": "虚空箱子频道已断开 — 请检查应力与虚空传送液",
   "createvoidway.void_chest_input.role": "输入端：向虚空频道存入物品",
   "createvoidway.void_chest_output.role": "输出端：从虚空频道取出物品",
   "createvoidway.void_chest_input.linked_outputs": "已链接输出端：%s",

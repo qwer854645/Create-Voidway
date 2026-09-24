@@ -7,6 +7,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -65,12 +66,12 @@ public class VoidChestContainer extends MenuBase<AbstractVoidChestTileEntity> {
 				addSlot(new SlotItemHandler(inventory, slot, 8 + x * 18, 18 + y * 18) {
 					@Override
 					public boolean mayPlace(ItemStack stack) {
-						return input && super.mayPlace(stack);
+						return input && contentHolder.canOperate() && super.mayPlace(stack);
 					}
 
 					@Override
 					public boolean mayPickup(Player player) {
-						return !input && super.mayPickup(player);
+						return !input && contentHolder.canOperate() && super.mayPickup(player);
 					}
 				});
 			}
@@ -82,6 +83,9 @@ public class VoidChestContainer extends MenuBase<AbstractVoidChestTileEntity> {
 
 	@Override
 	public ItemStack quickMoveStack(Player player, int index) {
+		if (!contentHolder.canOperate())
+			return ItemStack.EMPTY;
+
 		Slot clickedSlot = getSlot(index);
 		if (!clickedSlot.hasItem())
 			return ItemStack.EMPTY;
@@ -107,7 +111,14 @@ public class VoidChestContainer extends MenuBase<AbstractVoidChestTileEntity> {
 
 	@Override
 	public boolean stillValid(Player player) {
-		return super.stillValid(player) && contentHolder.canOperate();
+		if (!super.stillValid(player))
+			return false;
+		if (contentHolder.canOperate())
+			return true;
+		if (!player.level().isClientSide && contentHolder.consumeChannelOfflineWarning())
+			player.displayClientMessage(
+					Component.translatable("createvoidway.void_chest.channel_offline"), true);
+		return false;
 	}
 
 	public boolean isDisplayingNetwork(NetworkKey key) {

@@ -30,6 +30,7 @@
   "createvoidway.void_chest.insufficient_transfer_fluid": "Void chests require void transfer fluid from the left or right side to operate",
   "createvoidway.void_chest.transfer_fluid_drain_per_tick": "Void transfer fluid use: %s mB/t",
   "createvoidway.void_chest.no_transfer_fluid": "Insufficient void transfer fluid to operate",
+  "createvoidway.void_chest.channel_offline": "Void chest channel offline — check stress and transfer fluid",
   "createvoidway.void_chest_input.role": "Input: stores items into the voidway channel",
   "createvoidway.void_chest_output.role": "Output: extracts items from the voidway channel",
   "createvoidway.void_chest_input.linked_outputs": "Linked outputs: %s",

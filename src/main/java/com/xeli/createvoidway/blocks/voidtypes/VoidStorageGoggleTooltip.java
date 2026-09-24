@@ -20,13 +20,6 @@ public final class VoidStorageGoggleTooltip {
 		new LangBuilder(VoidwayMod.ID)
 				.translate(keyPrefix + (isInput ? "_input.linked_outputs" : "_output.linked_inputs"), linkedPartners)
 				.forGoggles(tooltip);
-
-		if (linkedPartners == 0) {
-			new LangBuilder(VoidwayMod.ID)
-					.translate(keyPrefix + ".not_linked")
-					.style(ChatFormatting.RED)
-					.forGoggles(tooltip);
-		}
 	}
 
 	public static void addKineticStatus(List<Component> tooltip, String keyPrefix,
@@ -99,11 +92,6 @@ public final class VoidStorageGoggleTooltip {
 						.style(ChatFormatting.GREEN)
 						.forGoggles(tooltip);
 			}
-		} else if (isLocallyReady) {
-			new LangBuilder(VoidwayMod.ID)
-					.translate(keyPrefix + ".partner_not_ready")
-					.style(ChatFormatting.RED)
-					.forGoggles(tooltip);
 		} else if (!hasSufficientTransferFluid) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate(keyPrefix + ".no_transfer_fluid")
@@ -205,11 +193,6 @@ public final class VoidStorageGoggleTooltip {
 						.style(ChatFormatting.GREEN)
 						.forGoggles(tooltip);
 			}
-		} else if (isLocallyReady) {
-			new LangBuilder(VoidwayMod.ID)
-					.translate("void_battery.partner_not_ready")
-					.style(ChatFormatting.RED)
-					.forGoggles(tooltip);
 		} else if (networkUsesEfficientTransfer && !hasSufficientTransferFluid) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_battery.no_transfer_fluid")
