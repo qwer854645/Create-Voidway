@@ -226,7 +226,7 @@ public abstract class AbstractVoidTankTileEntity extends KineticBlockEntity impl
 
 	@Override
 	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-		VoidStorageGoggleTooltip.addRoleAndLink(tooltip, "void_tank", isVoidTankInput(), linkedPartners);
+		VoidStorageGoggleTooltip.addRole(tooltip, "void_tank", isVoidTankInput());
 
 		boolean added = containedFluidTooltip(tooltip, isPlayerSneaking, getFluidStorage());
 

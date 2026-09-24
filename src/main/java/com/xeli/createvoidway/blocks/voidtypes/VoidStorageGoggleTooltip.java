@@ -12,13 +12,9 @@ public final class VoidStorageGoggleTooltip {
 
 	private VoidStorageGoggleTooltip() {}
 
-	public static void addRoleAndLink(List<Component> tooltip, String keyPrefix, boolean isInput, int linkedPartners) {
+	public static void addRole(List<Component> tooltip, String keyPrefix, boolean isInput) {
 		new LangBuilder(VoidwayMod.ID)
 				.translate(keyPrefix + (isInput ? "_input.role" : "_output.role"))
-				.forGoggles(tooltip);
-
-		new LangBuilder(VoidwayMod.ID)
-				.translate(keyPrefix + (isInput ? "_input.linked_outputs" : "_output.linked_inputs"), linkedPartners)
 				.forGoggles(tooltip);
 	}
 

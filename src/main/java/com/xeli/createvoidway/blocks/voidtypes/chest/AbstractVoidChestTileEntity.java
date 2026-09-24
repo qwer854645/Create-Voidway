@@ -354,7 +354,7 @@ public abstract class AbstractVoidChestTileEntity extends KineticBlockEntity
 
 	@Override
 	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-		VoidStorageGoggleTooltip.addRoleAndLink(tooltip, "void_chest", isVoidChestInput(), linkedPartners);
+		VoidStorageGoggleTooltip.addRole(tooltip, "void_chest", isVoidChestInput());
 
 		new LangBuilder(VoidwayMod.ID)
 				.translate("void_chest.channel_items", countOccupiedSlots(), getItemStorage().getSlots())

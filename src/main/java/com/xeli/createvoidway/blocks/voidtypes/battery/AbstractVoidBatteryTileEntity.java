@@ -312,7 +312,7 @@ public abstract class AbstractVoidBatteryTileEntity extends KineticBlockEntity
 
 	@Override
 	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-		VoidStorageGoggleTooltip.addRoleAndLink(tooltip, "void_battery", isVoidBatteryInput(), linkedPartners);
+		VoidStorageGoggleTooltip.addRole(tooltip, "void_battery", isVoidBatteryInput());
 
 		VoidBattery battery = getBattery();
 		new LangBuilder(VoidwayMod.ID)
