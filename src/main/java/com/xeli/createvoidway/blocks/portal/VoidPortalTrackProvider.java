@@ -1,7 +1,6 @@
 package com.xeli.createvoidway.blocks.portal;
 
 import com.simibubi.create.api.contraption.train.PortalTrackProvider;
-import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.RWBlocks;
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
@@ -32,8 +31,7 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 			return null;
 		if (sourceConnector.getPairStatus() != VoidPortalNetworkHandler.PairStatus.VALID)
 			return null;
-		// Source must be an active (lit) portal — same requirement as pre-0.2.13.
-		if (!sourceConnector.shouldActivatePortalBlocks())
+		if (sourceConnector.getPartnerPos() == null)
 			return null;
 
 		VoidPortalConnectorTileEntity destConnector = sourceConnector.resolvePartner(true);
@@ -43,13 +41,7 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 			return null;
 
 		BlockPos partnerPos = sourceConnector.getPartnerPos();
-		if (partnerPos == null)
-			return null;
-
-		// Re-sync destination network/shape after force-load; do NOT clear existing portal blocks.
 		destConnector.updateCachedShape();
-		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.refreshPortal(destLevel, partnerPos);
-		destConnector.ensurePortalBlocksFilled();
 
 		VoidPortalShape destShape = destConnector.getCachedShape();
 		if (destShape == null)
@@ -61,8 +53,12 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 		if (destPortalPos == null)
 			return null;
 
-		// Accept an already-lit destination, or one we just filled. Do not require a second
-		// isLocallyReady gate — force-loaded kinetics may not be ready the same tick.
+		// Never call refreshPortal/refreshPortalBlocks here — those can CLEAR dest portal blocks
+		// when pair state is briefly stale after force-load, which breaks track linking.
+		if (!destLevel.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
+			destConnector.ensurePortalBlocksFilled();
+		if (!destLevel.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
+			destConnector.forceFillPortalBlocksForTracks();
 		if (!destLevel.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
 			return null;
 
@@ -76,6 +72,18 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 			targetDirection = targetDirection.getClockWise();
 
 		BlockPos exitTrackPos = destPortalPos.relative(targetDirection);
+		// If the natural exit is blocked, try the opposite side of the portal plane.
+		if (!destLevel.getBlockState(exitTrackPos).canBeReplaced()) {
+			Direction opposite = targetDirection.getOpposite();
+			if (opposite.getAxis() != portalAxis) {
+				BlockPos alt = destPortalPos.relative(opposite);
+				if (destLevel.getBlockState(alt).canBeReplaced()) {
+					targetDirection = opposite;
+					exitTrackPos = alt;
+				}
+			}
+		}
+
 		return new Exit(destLevel, new BlockFace(exitTrackPos, targetDirection.getOpposite()));
 	}
 

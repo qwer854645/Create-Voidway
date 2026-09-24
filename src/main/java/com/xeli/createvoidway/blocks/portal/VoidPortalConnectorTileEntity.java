@@ -265,6 +265,24 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		lastFilledShape = shape;
 	}
 
+	/**
+	 * Materialize portal blocks from the frame for train-track linking even if stress/fluid
+	 * are not ready yet. Never clears. Entity teleport still requires {@link #shouldActivatePortalBlocks()}.
+	 */
+	public void forceFillPortalBlocksForTracks() {
+		if (level == null || level.isClientSide)
+			return;
+		if (cachedShape == null)
+			updateCachedShape();
+		VoidPortalShape shape = cachedShape != null ? cachedShape : getActiveShape();
+		if (shape == null)
+			return;
+		VoidPortalBlockSync.fill((ServerLevel) level, shape);
+		cachedShape = shape;
+		portalBlocksActive = true;
+		lastFilledShape = shape;
+	}
+
 	private void clearPortalBlocks(ServerLevel level, VoidPortalShape shape) {
 		VoidPortalBlockSync.clear(level, shape);
 	}
