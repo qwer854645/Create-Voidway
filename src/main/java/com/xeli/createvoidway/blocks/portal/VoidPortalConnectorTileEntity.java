@@ -224,8 +224,11 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		if (level == null || level.isClientSide)
 			return;
 		ServerLevel serverLevel = (ServerLevel) level;
+		if (cachedShape == null)
+			updateCachedShape();
 		boolean should = shouldActivatePortalBlocks();
-		if (cachedShape == null) {
+		VoidPortalShape shape = cachedShape != null ? cachedShape : getActiveShape();
+		if (shape == null) {
 			if (portalBlocksActive && lastFilledShape != null)
 				clearPortalBlocks(serverLevel, lastFilledShape);
 			portalBlocksActive = false;
@@ -233,14 +236,33 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 			return;
 		}
 		if (should) {
-			VoidPortalBlockSync.fill(serverLevel, cachedShape);
+			VoidPortalBlockSync.fill(serverLevel, shape);
+			cachedShape = shape;
 			portalBlocksActive = true;
-			lastFilledShape = cachedShape;
+			lastFilledShape = shape;
 		} else if (portalBlocksActive) {
-			clearPortalBlocks(serverLevel, cachedShape);
+			clearPortalBlocks(serverLevel, shape);
 			portalBlocksActive = false;
 			lastFilledShape = null;
 		}
+	}
+
+	/**
+	 * Fill portal interior if this connector can activate. Never clears existing blocks —
+	 * used by train track linking so a stale pair tick cannot wipe the destination portal.
+	 */
+	public void ensurePortalBlocksFilled() {
+		if (level == null || level.isClientSide)
+			return;
+		if (cachedShape == null)
+			updateCachedShape();
+		VoidPortalShape shape = cachedShape != null ? cachedShape : getActiveShape();
+		if (shape == null || !shouldActivatePortalBlocks())
+			return;
+		VoidPortalBlockSync.fill((ServerLevel) level, shape);
+		cachedShape = shape;
+		portalBlocksActive = true;
+		lastFilledShape = shape;
 	}
 
 	private void clearPortalBlocks(ServerLevel level, VoidPortalShape shape) {

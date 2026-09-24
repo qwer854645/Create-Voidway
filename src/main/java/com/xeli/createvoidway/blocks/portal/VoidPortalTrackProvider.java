@@ -1,6 +1,7 @@
 package com.xeli.createvoidway.blocks.portal;
 
 import com.simibubi.create.api.contraption.train.PortalTrackProvider;
+import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.blocks.RWBlocks;
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
@@ -31,21 +32,24 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 			return null;
 		if (sourceConnector.getPairStatus() != VoidPortalNetworkHandler.PairStatus.VALID)
 			return null;
+		// Source must be an active (lit) portal — same requirement as pre-0.2.13.
+		if (!sourceConnector.shouldActivatePortalBlocks())
+			return null;
 
 		VoidPortalConnectorTileEntity destConnector = sourceConnector.resolvePartner(true);
 		if (destConnector == null)
 			return null;
 		if (!(destConnector.getLevel() instanceof ServerLevel destLevel))
 			return null;
-		if (!destConnector.isLocallyReady())
-			return null;
-
-		// Force-loaded destinations may not have ticked yet — fill portal blocks now.
-		destConnector.refreshPortalBlocks();
 
 		BlockPos partnerPos = sourceConnector.getPartnerPos();
 		if (partnerPos == null)
 			return null;
+
+		// Re-sync destination network/shape after force-load; do NOT clear existing portal blocks.
+		destConnector.updateCachedShape();
+		VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.refreshPortal(destLevel, partnerPos);
+		destConnector.ensurePortalBlocksFilled();
 
 		VoidPortalShape destShape = destConnector.getCachedShape();
 		if (destShape == null)
@@ -54,7 +58,12 @@ public final class VoidPortalTrackProvider implements PortalTrackProvider {
 			return null;
 
 		BlockPos destPortalPos = VoidPortalShape.mapPortalBlock(sourceShape, portalPos, destShape);
-		if (destPortalPos == null || !destLevel.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
+		if (destPortalPos == null)
+			return null;
+
+		// Accept an already-lit destination, or one we just filled. Do not require a second
+		// isLocallyReady gate — force-loaded kinetics may not be ready the same tick.
+		if (!destLevel.getBlockState(destPortalPos).is(RWBlocks.VOID_PORTAL.get()))
 			return null;
 
 		// Match Create nether portals: exit facing uses the destination portal axis.
