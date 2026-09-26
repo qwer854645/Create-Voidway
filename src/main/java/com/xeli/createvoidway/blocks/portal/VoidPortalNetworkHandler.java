@@ -80,11 +80,12 @@ public class VoidPortalNetworkHandler {
 		if (link == null)
 			return;
 
-		VoidPortalShape shape = VoidPortalShape.findAt(world, connectorPos);
 		Set<BlockPos> network = getNetworkOf(world, link);
 		BlockPos previous = findRegisteredPos(network, connectorPos);
 
-		if (shape != null && hasFrequencyConfigured(link))
+		boolean occupy = world.getBlockEntity(connectorPos) instanceof VoidPortalConnectorTileEntity connector
+				&& connector.canOccupyFrequency();
+		if (occupy)
 			network.add(connectorPos);
 		else
 			network.remove(connectorPos);
@@ -225,8 +226,11 @@ public class VoidPortalNetworkHandler {
 				BlockPos pos = iterator.next();
 				if (!level.hasChunkAt(pos))
 					continue;
-				if (VoidNetworkLevels.shouldDropFromIndex(level, pos) || !isValidPortal(level, pos))
+				if (VoidNetworkLevels.shouldDropFromIndex(level, pos) || !isValidPortal(level, pos)) {
+					if (level.getBlockEntity(pos) instanceof IVoidPortalEndpoint portal)
+						portal.setNetworkState(PairStatus.UNPAIRED, 0, null, null, 0);
 					iterator.remove();
+				}
 			}
 			if (positions.isEmpty())
 				dimensionEntry.getValue().remove(key);
@@ -234,12 +238,9 @@ public class VoidPortalNetworkHandler {
 	}
 
 	private static boolean isValidPortal(LevelAccessor world, BlockPos connectorPos) {
-		if (!(world.getBlockEntity(connectorPos) instanceof VoidPortalConnectorTileEntity))
+		if (!(world.getBlockEntity(connectorPos) instanceof VoidPortalConnectorTileEntity connector))
 			return false;
-		if (VoidPortalShape.findAt(world, connectorPos) == null)
-			return false;
-		VoidPortalLinkBehaviour link = getLinkBehaviour(world, connectorPos);
-		return link != null && hasFrequencyConfigured(link);
+		return connector.canOccupyFrequency();
 	}
 
 	private PairStatus getPairStatus(int size) {

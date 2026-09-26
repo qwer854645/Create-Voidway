@@ -3,6 +3,7 @@ package com.xeli.createvoidway.blocks.portal;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.xeli.createvoidway.VoidwayMod;
 import com.xeli.createvoidway.config.VoidwayConfig;
 import com.xeli.createvoidway.fluids.VoidTransferFluidTank;
 import net.minecraft.core.BlockPos;
@@ -25,6 +26,9 @@ public class VoidPortalFluidTileEntity extends SmartBlockEntity implements IHave
 			return;
 		setChanged();
 		sendData();
+		VoidPortalShape shape = VoidPortalShape.findAt(level, worldPosition);
+		if (shape != null)
+			VoidwayMod.VOID_PORTAL_NETWORK_HANDLER.refreshPortal(level, shape.connectorPos());
 	});
 
 	public VoidPortalFluidTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {

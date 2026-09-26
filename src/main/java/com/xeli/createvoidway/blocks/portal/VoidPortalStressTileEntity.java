@@ -38,8 +38,12 @@ public class VoidPortalStressTileEntity extends KineticBlockEntity implements IH
 	}
 
 	public boolean hasRequiredStress() {
-		return hasShaftConnection() && hasSource() && !isOverStressed()
-				&& Math.abs(getTheoreticalSpeed()) > 0;
+		return hasStressInput() && !isOverStressed();
+	}
+
+	/** Shaft powered with speed — used for frequency occupancy (ignores overstress to avoid pair flicker). */
+	public boolean hasStressInput() {
+		return hasShaftConnection() && hasSource() && Math.abs(getTheoreticalSpeed()) > 0;
 	}
 
 	public int getStressDemand(int linkDistance) {

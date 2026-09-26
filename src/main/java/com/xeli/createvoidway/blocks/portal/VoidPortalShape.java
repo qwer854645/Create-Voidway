@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * Axis-aligned hollow square portal frame (vanilla-portal style).
@@ -282,28 +283,29 @@ public record VoidPortalShape(
 	public static BlockPos mapPortalBlock(VoidPortalShape source, BlockPos sourcePortal, VoidPortalShape dest) {
 		Direction.Axis sourceWidth = source.widthAxis();
 		Direction.Axis destWidth = dest.widthAxis();
-		int destW = mapInteriorCoord(source.left() + 1, source.right() - 1, dest.left() + 1, dest.right() - 1,
+		// Must not treat negative world coords as failure — void/overworld portals often sit at z<0.
+		OptionalInt destW = mapInteriorCoord(source.left() + 1, source.right() - 1, dest.left() + 1, dest.right() - 1,
 				getCoord(sourcePortal, sourceWidth));
-		if (destW < 0)
+		if (destW.isEmpty())
 			return null;
-		int destY = mapInteriorCoord(source.bottom() + 1, source.top() - 1, dest.bottom() + 1, dest.top() - 1,
+		OptionalInt destY = mapInteriorCoord(source.bottom() + 1, source.top() - 1, dest.bottom() + 1, dest.top() - 1,
 				sourcePortal.getY());
-		if (destY < 0)
+		if (destY.isEmpty())
 			return null;
-		return posAt(destWidth, dest.planeCoord(), destW, destY);
+		return posAt(destWidth, dest.planeCoord(), destW.getAsInt(), destY.getAsInt());
 	}
 
-	private static int mapInteriorCoord(int sourceMin, int sourceMax, int destMin, int destMax, int sourceCoord) {
+	private static OptionalInt mapInteriorCoord(int sourceMin, int sourceMax, int destMin, int destMax, int sourceCoord) {
 		if (sourceCoord < sourceMin || sourceCoord > sourceMax)
-			return -1;
+			return OptionalInt.empty();
 		int sourceSpan = sourceMax - sourceMin;
 		int destSpan = destMax - destMin;
 		if (sourceSpan <= 0 && destSpan <= 0)
-			return sourceCoord == sourceMin ? destMin : -1;
+			return sourceCoord == sourceMin ? OptionalInt.of(destMin) : OptionalInt.empty();
 		if (sourceSpan <= 0)
-			return destMin + destSpan / 2;
+			return OptionalInt.of(destMin + destSpan / 2);
 		int rel = sourceCoord - sourceMin;
-		return destMin + (rel * destSpan) / sourceSpan;
+		return OptionalInt.of(destMin + (rel * destSpan) / sourceSpan);
 	}
 
 	public AABB getInteriorBounds() {

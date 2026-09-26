@@ -167,6 +167,18 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 				&& hasTransferFluid();
 	}
 
+	/**
+	 * Whether this portal may occupy its frequency slot for pairing.
+	 * Requires a valid frame, frequency, transfer fluid, and a live stress input.
+	 * Overstress alone does not drop occupancy (avoids VALID↔UNPAIRED flicker when demand applies).
+	 */
+	public boolean canOccupyFrequency() {
+		return getActiveShape() != null
+				&& hasFrequencyConfigured()
+				&& hasTransferFluid()
+				&& hasStressInput();
+	}
+
 	private boolean computePartnerReady() {
 		VoidPortalConnectorTileEntity partner = resolvePartner(false);
 		return partner != null && partner.isLocallyReady();
@@ -188,6 +200,15 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		if (!(level.getBlockEntity(shape.stressPos()) instanceof VoidPortalStressTileEntity stress))
 			return false;
 		return stress.hasRequiredStress();
+	}
+
+	public boolean hasStressInput() {
+		VoidPortalShape shape = getActiveShape();
+		if (shape == null || level == null)
+			return false;
+		if (!(level.getBlockEntity(shape.stressPos()) instanceof VoidPortalStressTileEntity stress))
+			return false;
+		return stress.hasStressInput();
 	}
 
 	@Nullable
