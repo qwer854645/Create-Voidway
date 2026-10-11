@@ -79,7 +79,7 @@ public final class VoidMotorGoggleTooltip {
 					.translate("void_motor_input.over_stressed")
 					.style(ChatFormatting.RED)
 					.forGoggles(tooltip);
-		} else if (!hasSource) {
+		} else if (!hasSource || receivedStress <= 0) {
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_motor_input.no_stress_source")
 					.style(ChatFormatting.RED)

@@ -50,7 +50,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	public boolean canRelay() {
-		return hasRotation() && hasSufficientTransferFluid();
+		return hasRotation() && getPotentialChannelStressContribution() > 0 && hasSufficientTransferFluid();
 	}
 
 	@Override
@@ -68,8 +68,6 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	private boolean hasSufficientTransferFluid() {
-		if (getPotentialChannelStressContribution() <= 0)
-			return false;
 		FluidStack stored = fluidTank.getFluid();
 		if (stored.isEmpty() || !RWFluids.isAllowedInVoidMotorInput(stored))
 			return false;
@@ -99,7 +97,10 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		if (!hasRotation() || !hasNetwork())
 			return 0;
 		var kineticNetwork = getOrCreateNetwork();
-		float totalStress = kineticNetwork.calculateStress();
+		// Create supplies authoritative totals through updateFromNetwork, including unloaded members.
+		// Calling calculateCapacity/calculateStress during registration can inspect an incomplete
+		// member map (and prune entries) while the kinetic network is still being assembled.
+		float totalStress = stress;
 		float relayStress = 0;
 		float totalLimit = 0;
 		boolean countedSelf = false;
@@ -117,7 +118,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		}
 		if (!countedSelf)
 			totalLimit += getInputStressLimit();
-		return VoidMotorStressBudget.allocate(kineticNetwork.calculateCapacity(), totalStress,
+		return VoidMotorStressBudget.allocate(capacity, totalStress,
 				relayStress, getInputStressLimit(), totalLimit);
 	}
 
@@ -175,6 +176,12 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 			return;
 
 		float available = getReceivedStress();
+		if (available <= 0 && hasRotation() && fluidTank.getFluidAmount() > 0
+				&& level.getGameTime() % 200 == 0) {
+			com.xeli.createvoidway.VoidwayMod.LOGGER.warn(
+					"[VoidMotorInput] No available stress at {}: rpm={}, capacity={}, stress={}, network={}",
+					worldPosition, getTheoreticalSpeed(), capacity, stress, network);
+		}
 		if (Float.compare(available, receivedStress) != 0) {
 			receivedStress = available;
 			sendData();
