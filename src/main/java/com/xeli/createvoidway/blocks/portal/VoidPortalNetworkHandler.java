@@ -189,7 +189,7 @@ public class VoidPortalNetworkHandler {
 		if (loaded.size() == 1) {
 			DimPos self = loaded.get(0);
 			DimPos stored = readStoredPartner(world, self);
-			if (stored != null && !stored.equals(self))
+			if (stored != null && !stored.equals(self) && unloaded.contains(stored))
 				return List.of(self, stored);
 			List<DimPos> combined = new ArrayList<>(loaded);
 			combined.addAll(unloaded);

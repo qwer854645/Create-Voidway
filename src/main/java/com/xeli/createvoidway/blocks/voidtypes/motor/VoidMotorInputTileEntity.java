@@ -32,6 +32,8 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	});
 
 	private boolean transferFluidWasEmpty = true;
+	private float appliedDemand = -1;
+	private boolean previouslyOverstressed;
 
 	public VoidMotorInputTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -61,7 +63,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	private boolean hasRotation() {
-		return getTheoreticalSpeed() != 0;
+		return hasSource() && getTheoreticalSpeed() != 0;
 	}
 
 	private boolean hasSufficientTransferFluid() {
@@ -106,7 +108,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 
 	@Override
 	public float getChannelStressContribution() {
-		if (!isInjecting())
+		if (!isInjecting() || !hasSource() || isOverStressed())
 			return 0;
 		return getPotentialChannelStressContribution();
 	}
@@ -118,7 +120,9 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		float speed = Math.abs(getTheoreticalSpeed());
 		if (speed == 0)
 			return 0;
-		return getLocalStressConsumption() / speed;
+		// Charge the source for both transmitted stress and the local conversion loss.
+		// Keep this demand while overloaded so the channel cannot repeatedly restart itself.
+		return getReceivedStress() / speed;
 	}
 
 	@Override
@@ -128,7 +132,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	private boolean isRelayingRotation() {
-		return isInjecting() && getTheoreticalSpeed() != 0;
+		return isInjecting() && !isOverStressed() && getTheoreticalSpeed() != 0;
 	}
 
 	private void consumeTransferFluid() {
@@ -140,6 +144,19 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		super.tick();
 		if (level == null || level.isClientSide)
 			return;
+
+		if (hasNetwork()) {
+			float demand = calculateStressApplied();
+			if (Float.compare(demand, appliedDemand) != 0) {
+				appliedDemand = demand;
+				lastStressApplied = demand;
+				getOrCreateNetwork().updateStressFor(this, demand);
+			}
+		}
+		if (previouslyOverstressed != isOverStressed()) {
+			previouslyOverstressed = isOverStressed();
+			notifyRelayNetwork();
+		}
 
 		boolean canRelay = canRelay();
 		if (canRelay && transferFluidWasEmpty) {

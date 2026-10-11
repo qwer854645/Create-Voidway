@@ -13,6 +13,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 
 public class VoidPortalStressTileEntity extends KineticBlockEntity implements IHaveGoggleInformation {
+	private float appliedDemand = -1;
+
+	@Override
+	public void tick() {
+		super.tick();
+		if (level == null || level.isClientSide || !hasNetwork())
+			return;
+		float demand = calculateStressApplied();
+		if (Float.compare(demand, appliedDemand) != 0) {
+			appliedDemand = demand;
+			lastStressApplied = demand;
+			getOrCreateNetwork().updateStressFor(this, demand);
+		}
+	}
 
 	public VoidPortalStressTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -41,7 +55,7 @@ public class VoidPortalStressTileEntity extends KineticBlockEntity implements IH
 		return hasStressInput() && !isOverStressed();
 	}
 
-	/** Shaft powered with speed — used for frequency occupancy (ignores overstress to avoid pair flicker). */
+	/** Physical input remains detectable while the kinetic network is overloaded. */
 	public boolean hasStressInput() {
 		return hasShaftConnection() && hasSource() && Math.abs(getTheoreticalSpeed()) > 0;
 	}
@@ -61,9 +75,7 @@ public class VoidPortalStressTileEntity extends KineticBlockEntity implements IH
 			return 0;
 		if (!(level.getBlockEntity(shape.connectorPos()) instanceof VoidPortalConnectorTileEntity connector))
 			return 0;
-		if (connector.getPairStatus() != VoidPortalNetworkHandler.PairStatus.VALID)
-			return 0;
-		return VoidChannelStress.toImpactPerRpm(getStressDemand(connector.getLinkDistance()), getTheoreticalSpeed());
+		return VoidChannelStress.toImpactPerRpm(connector.getOccupancyStressDemand(), getTheoreticalSpeed());
 	}
 
 	@Override

@@ -37,6 +37,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	@Nullable
 	private ResourceLocation partnerDimension;
 	private int linkDistance;
+	private int retainedStressDemand;
 	private boolean portalBlocksActive;
 	@Nullable
 	private VoidPortalShape lastFilledShape;
@@ -75,6 +76,9 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		this.partnerDimension = partnerDimension;
 		this.partnerPos = partner;
 		this.linkDistance = linkDistance;
+		if (status == VoidPortalNetworkHandler.PairStatus.VALID)
+			retainedStressDemand = VoidPortalLinkMetrics.computeStressDemand(linkDistance);
+		setChanged();
 		sendData();
 	}
 
@@ -170,13 +174,22 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 	/**
 	 * Whether this portal may occupy its frequency slot for pairing.
 	 * Requires a valid frame, frequency, transfer fluid, and a live stress input.
-	 * Overstress alone does not drop occupancy (avoids VALID↔UNPAIRED flicker when demand applies).
+	 * Overloaded portals release their slot; retained demand prevents pairing oscillation.
 	 */
 	public boolean canOccupyFrequency() {
 		return getActiveShape() != null
 				&& hasFrequencyConfigured()
 				&& hasTransferFluid()
-				&& hasStressInput();
+				&& hasRequiredStress();
+	}
+
+	public int getOccupancyStressDemand() {
+		if (getActiveShape() == null || !hasFrequencyConfigured() || !hasTransferFluid()) {
+			retainedStressDemand = 0;
+			return 0;
+		}
+		return pairStatus == VoidPortalNetworkHandler.PairStatus.VALID
+				? getLinkStressDemand() : retainedStressDemand;
 	}
 
 	private boolean computePartnerReady() {
@@ -435,6 +448,10 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		else
 			partnerDimension = null;
 		linkDistance = tag.getInt("LinkDistance");
+		retainedStressDemand = tag.contains("RetainedStressDemand")
+				? Math.max(0, tag.getInt("RetainedStressDemand"))
+				: (pairStatus == VoidPortalNetworkHandler.PairStatus.VALID
+						? VoidPortalLinkMetrics.computeStressDemand(linkDistance) : 0);
 		partnerReady = tag.getBoolean("PartnerReady");
 		super.read(tag, registries, clientPacket);
 	}
@@ -448,6 +465,7 @@ public class VoidPortalConnectorTileEntity extends SmartBlockEntity
 		if (partnerDimension != null)
 			tag.putString("PartnerDimension", partnerDimension.toString());
 		tag.putInt("LinkDistance", linkDistance);
+		tag.putInt("RetainedStressDemand", retainedStressDemand);
 		tag.putBoolean("PartnerReady", partnerReady);
 		super.write(tag, registries, clientPacket);
 	}

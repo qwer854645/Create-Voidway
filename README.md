@@ -1,6 +1,6 @@
 # Create: Voidway
 
-**Version:** `0.2.3` · Minecraft **1.21.1** · NeoForge
+**Version:** `0.2.20` · Minecraft **1.21.1** · NeoForge
 
 A Create addon (中文名：**机械动力：虚空通道**) that extends [Create Utilities](https://github.com/Duqueeee/create-utilities) with frequency-linked void logistics, a void node terminal, teleport pads, and stress/fluid-powered portals.
 
@@ -12,9 +12,9 @@ This project is a fork of the unofficial NeoForge port by SmartStreamLabs, maint
 
 ## Mod Contents
 
-### Void logistics (input / output pairs)
+### Void logistics (frequency channels)
 
-Each resource type has dedicated **input** and **output** blocks. Set the same frequency on linked devices to transfer across the void.
+Each resource type has dedicated **input** and **output** blocks. Set the same frequency and owner to share a channel across dimensions. Chests, tanks, and batteries access channel storage without requiring a paired endpoint; each endpoint still needs its operating conditions.
 
 | Type | Input | Output | Transfers |
 |------|-------|--------|-----------|
@@ -36,7 +36,7 @@ A two-block multiblock terminal for managing your void network:
 
 ### Void teleport
 
-- **Void Teleport Link** — pairs two teleport endpoints on a frequency
+- **Void Teleport Link** — pairs two teleport endpoints on a frequency, including across dimensions
 - **Void Teleport Pad** — instant entity transport between paired pads on the same channel
 
 ### Void portals
@@ -90,7 +90,7 @@ When Sable is installed, distance checks, teleports, and frequency-slot renderin
 ./gradlew build
 ```
 
-Output JAR: `build/libs/createvoidway-0.2.3+mc1.21.1.jar`
+Output JAR: `build/libs/createvoidway-0.2.20+mc1.21.1.jar`
 
 Run the development client:
 
