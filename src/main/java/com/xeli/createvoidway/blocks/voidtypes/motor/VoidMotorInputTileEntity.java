@@ -34,6 +34,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	private boolean transferFluidWasEmpty = true;
 	private float appliedDemand = -1;
 	private boolean previouslyOverstressed;
+	private float receivedStress;
 
 	public VoidMotorInputTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -93,6 +94,34 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	}
 
 	public float getReceivedStress() {
+		if (level == null || level.isClientSide)
+			return receivedStress;
+		if (!hasRotation() || !hasNetwork())
+			return 0;
+		var kineticNetwork = getOrCreateNetwork();
+		float totalStress = kineticNetwork.calculateStress();
+		float relayStress = 0;
+		float totalLimit = 0;
+		boolean countedSelf = false;
+		for (var member : kineticNetwork.members.keySet()) {
+			if (!(member instanceof VoidMotorInputTileEntity input))
+				continue;
+			relayStress += kineticNetwork.getActualStressOf(input);
+			// Inspect raw conditions only: calling canRelay here would recurse into this allocation.
+			if (input == this || (input.hasRotation() && input.readyPartners > 0
+					&& input.fluidTank.getFluidAmount() > 0
+					&& RWFluids.isAllowedInVoidMotorInput(input.fluidTank.getFluid()))) {
+				totalLimit += input.getInputStressLimit();
+				countedSelf |= input == this;
+			}
+		}
+		if (!countedSelf)
+			totalLimit += getInputStressLimit();
+		return VoidMotorStressBudget.allocate(kineticNetwork.calculateCapacity(), totalStress,
+				relayStress, getInputStressLimit(), totalLimit);
+	}
+
+	private float getInputStressLimit() {
 		float speed = getTheoreticalSpeed();
 		if (speed == 0)
 			return 0;
@@ -145,6 +174,13 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 		if (level == null || level.isClientSide)
 			return;
 
+		float available = getReceivedStress();
+		if (Float.compare(available, receivedStress) != 0) {
+			receivedStress = available;
+			sendData();
+			notifyRelayNetwork();
+		}
+
 		if (hasNetwork()) {
 			float demand = calculateStressApplied();
 			if (Float.compare(demand, appliedDemand) != 0) {
@@ -178,6 +214,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	@Override
 	protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		super.read(tag, registries, clientPacket);
+		receivedStress = Math.max(0, tag.getFloat("ReceivedStress"));
 		if (tag.contains("FluidTank"))
 			fluidTank.readFromNBT(registries, tag.getCompound("FluidTank"));
 		else if (tag.contains("CatalystTank"))
@@ -188,6 +225,7 @@ public class VoidMotorInputTileEntity extends AbstractVoidMotorTileEntity implem
 	@Override
 	protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		tag.put("FluidTank", fluidTank.writeToNBT(registries, new CompoundTag()));
+		tag.putFloat("ReceivedStress", receivedStress);
 		super.write(tag, registries, clientPacket);
 	}
 

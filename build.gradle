@@ -181,6 +181,24 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+sourceSets.create('motorRegression') {
+    compileClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.main.output
+}
+
+tasks.register('motorStressRegression', JavaExec) {
+    dependsOn tasks.named('motorRegressionClasses')
+    classpath = sourceSets.motorRegression.runtimeClasspath
+    mainClass = 'com.xeli.createvoidway.blocks.voidtypes.motor.VoidMotorStressBudgetTest'
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('motorStressRegression')
+}
+
 idea {
     module {
         downloadSources = true
