@@ -16,14 +16,20 @@ public final class VoidMotorStressBudgetTest {
         check(0, VoidMotorStressBudget.allocate(256, 300, 0, 320, 320));
         check(320, VoidMotorStressBudget.allocate(10240, 0, 0, 320, 320));
         check(0, VoidMotorStressBudget.allocate(0, 0, 0, 320, 320));
-        check(0.7f, VoidMotorStressBudget.grantRpm(16, 28, 640, 40, 10240));
-        check(-0.7f, VoidMotorStressBudget.grantRpm(-16, 28, 640, 40, 10240));
-        check(0, VoidMotorStressBudget.grantRpm(16, 0, 640, 40, 10240));
-        check(16, VoidMotorStressBudget.grantRpm(16, 10240, 640, 40, 10240));
-        float firstRpm = VoidMotorStressBudget.grantRpm(16, 28, 1280, 40, 10240);
-        float secondRpm = VoidMotorStressBudget.grantRpm(16, 28, 1280, 40, 10240);
-        check(28, (Math.abs(firstRpm) + Math.abs(secondRpm)) * 40);
-        check(0, VoidMotorStressBudget.grantRpm(16, 28, 640, 0, 0));
+        float single = VoidMotorStressBudget.outputCapacity(28, 1, 10240);
+        check(28, single);
+        check(16, VoidMotorStressBudget.outputRpm(16, single));
+        check(256, VoidMotorStressBudget.outputRpm(256, single));
+        check(-16, VoidMotorStressBudget.outputRpm(-16, single));
+        check(28, VoidMotorStressBudget.capacityPerRpm(single, 16) * 16);
+        check(28, VoidMotorStressBudget.capacityPerRpm(single, -256) * 256);
+        check(14, VoidMotorStressBudget.outputCapacity(28, 2, 10240));
+        check(28, VoidMotorStressBudget.outputCapacity(28, 2, 10240) * 2);
+        check(10240, VoidMotorStressBudget.outputCapacity(30000, 2, 10240));
+        check(0, VoidMotorStressBudget.outputRpm(16, 0));
+        check(0, VoidMotorStressBudget.outputCapacity(28, 0, 10240));
+        check(0, VoidMotorStressBudget.outputCapacity(28, 1, 0));
+        check(0, VoidMotorStressBudget.capacityPerRpm(28, 0));
         System.out.println("Motor stress allocation regression checks passed.");
     }
 

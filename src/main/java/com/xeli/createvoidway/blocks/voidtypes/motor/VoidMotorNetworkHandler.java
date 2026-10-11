@@ -74,7 +74,8 @@ public class VoidMotorNetworkHandler {
 	}
 
 	/**
-	 * Sum stress from inputs across all dimensions, then grant each loaded output its RPM share.
+	 * Sum stress across dimensions and split capacity equally among enabled outputs.
+	 * Output RPM follows its setting; Create handles overload on the attached kinetic network.
 	 */
 	public void updateNetworkOf(LevelAccessor world, VoidMotorLinkBehaviour actor) {
 		NetworkKey key = actor.getNetworkKey();
@@ -96,19 +97,18 @@ public class VoidMotorNetworkHandler {
 				totalStressIn += Math.abs(input.getChannelStressContribution());
 		}
 
-		float totalDemand = 0;
+		int activeOutputs = 0;
 		for (VoidMotorOutputTileEntity output : outputs)
-			totalDemand += output.getRequestedChannelStress();
+			if (output.getRequestedRpm() != 0)
+				activeOutputs++;
 
+		float share = VoidMotorStressBudget.outputCapacity(totalStressIn, activeOutputs,
+				VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
 		for (VoidMotorOutputTileEntity output : outputs) {
 			int requested = output.getRequestedRpm();
-			float stressPerRpm = VoidwayConfig.getVoidMotorOutputStressPerRpm();
-			float granted = VoidMotorStressBudget.grantRpm(requested, totalStressIn, totalDemand,
-					stressPerRpm, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
-			output.applyGrantedSpeed(granted);
-			float used = stressPerRpm * Math.abs(granted);
-			used = Math.min(used, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
-			output.setChannelStressStats(totalStressIn, used);
+			float allocated = requested == 0 ? 0 : share;
+			output.setChannelStressStats(totalStressIn, allocated);
+			output.applyGrantedSpeed(VoidMotorStressBudget.outputRpm(requested, allocated));
 		}
 
 		for (VoidMotorInputTileEntity input : inputs)

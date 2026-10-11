@@ -25,6 +25,8 @@ Each resource type has dedicated **input** and **output** blocks. Set the same f
 
 All void I/O blocks support **frequency slots**, **owner assignment**, shaft connection on the bottom, and in-game **Ponder** tutorials.
 
+Void motor outputs retain their configured RPM while channel stress is available. Enabled outputs share the channel's capacity equally, up to 10240 SU per output by default. Outputs set to 0 RPM do not reserve capacity. Create stops an overloaded mechanical network when its load exceeds the allocated capacity; low channel capacity does not automatically reduce the configured RPM.
+
 ### Void Node Terminal
 
 A two-block multiblock terminal for managing your void network:

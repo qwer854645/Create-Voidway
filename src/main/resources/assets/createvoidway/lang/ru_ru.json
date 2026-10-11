@@ -1,4 +1,6 @@
 {
+  "createvoidway.void_motor_output.allocated_capacity": "Выделенная мощность: %s SU",
+  "createvoidway.void_motor_output.over_stressed": "Перегрузка: нагрузка превышает выделенную мощность",
   "itemGroup.createvoidway.base": "Create: Voidway",
 
   "block.createvoidway.lshaped_gearbox": "Угловая коробка передач",

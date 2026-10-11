@@ -4,13 +4,18 @@ package com.xeli.createvoidway.blocks.voidtypes.motor;
 public final class VoidMotorStressBudget {
     private VoidMotorStressBudget() {}
 
-    public static float grantRpm(int requested, float available, float totalDemand,
-            float stressPerRpm, float maxCapacity) {
-        if (available <= 0 || totalDemand <= 0 || stressPerRpm <= 0 || maxCapacity <= 0)
+    public static float outputCapacity(float available, int activeOutputs, float maxCapacity) {
+        if (available <= 0 || activeOutputs <= 0 || maxCapacity <= 0)
             return 0;
-        float scale = Math.min(1, available / totalDemand);
-        float magnitude = Math.min(Math.abs((float) requested) * scale, maxCapacity / stressPerRpm);
-        return Math.copySign(magnitude, requested);
+        return Math.min(maxCapacity, available / activeOutputs);
+    }
+
+    public static float outputRpm(int requested, float allocatedCapacity) {
+        return allocatedCapacity > 0 ? requested : 0;
+    }
+
+    public static float capacityPerRpm(float allocatedCapacity, float rpm) {
+        return allocatedCapacity > 0 && rpm != 0 ? allocatedCapacity / Math.abs(rpm) : 0;
     }
 
     public static float allocate(float capacity, float totalStress, float relayStress,

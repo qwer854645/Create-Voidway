@@ -1,4 +1,6 @@
 {
+  "createvoidway.void_motor_output.allocated_capacity": "Allocated capacity: %s SU",
+  "createvoidway.void_motor_output.over_stressed": "Output overloaded: load exceeds allocated capacity",
   "itemGroup.createvoidway.base": "Create: Voidway",
   "block.createvoidway.lshaped_gearbox": "L-Shaped Gearbox",
   "fluid.createvoidway.void_transfer_fluid": "Void Transfer Fluid",

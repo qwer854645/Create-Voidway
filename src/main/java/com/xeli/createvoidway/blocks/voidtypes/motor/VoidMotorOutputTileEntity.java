@@ -24,7 +24,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import java.util.List;
 
 /**
- * Voidway stress source with adjustable RPM, capped by channel stress from paired inputs.
+ * Adjustable RPM source with channel-allocated capacity independent of speed.
  */
 public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 		implements IVoidMotorRelay, IHaveGoggleInformation {
@@ -86,8 +86,7 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	public float getRequestedChannelStress() {
 		if (generatedSpeed == null)
 			return 0;
-		float raw = VoidwayConfig.getVoidMotorOutputStressPerRpm() * Math.abs(generatedSpeed.getValue());
-		return Math.min(raw, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
+		return generatedSpeed.getValue() == 0 ? 0 : VoidwayConfig.getVoidMotorOutputMaxStressCapacity();
 	}
 
 	public int getRequestedRpm() {
@@ -124,7 +123,17 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 			return;
 		channelStressTotal = total;
 		channelStressUsed = usedStress;
+		setChanged();
+		if (level != null && !level.isClientSide && hasNetwork()
+				&& getOrCreateNetwork().sources.containsKey(this))
+			notifyStressCapacityChange(calculateAddedStressCapacity());
 		sendData();
+	}
+
+	@Override
+	public float calculateAddedStressCapacity() {
+		lastCapacityProvided = VoidMotorStressBudget.capacityPerRpm(channelStressUsed, getGeneratedSpeed());
+		return lastCapacityProvided;
 	}
 
 	@Override
@@ -182,6 +191,8 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 			return;
 		grantedRpm = rpm;
 		updateGeneratedRotation();
+		setChanged();
+		sendData();
 	}
 
 	@Override
@@ -254,9 +265,12 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 			new LangBuilder(VoidwayMod.ID)
 					.translate("void_motor_output.requested_rpm", getRequestedRpm())
 					.forGoggles(tooltip);
-			if (Math.abs(grantedRpm) < Math.abs(getRequestedRpm()) && getRequestedRpm() != 0) {
+			new LangBuilder(VoidwayMod.ID)
+					.translate("void_motor_output.allocated_capacity", channelStressUsed)
+					.forGoggles(tooltip);
+			if (isOverStressed()) {
 				new LangBuilder(VoidwayMod.ID)
-						.translate("void_motor_output.stress_limited", Math.abs(grantedRpm))
+						.translate("void_motor_output.over_stressed")
 						.style(ChatFormatting.RED)
 						.forGoggles(tooltip);
 			} else if (Math.abs(grantedRpm) > 0) {

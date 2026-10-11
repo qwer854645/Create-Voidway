@@ -1,4 +1,6 @@
 {
+  "createvoidway.void_motor_output.allocated_capacity": "分配的应力容量：%s SU",
+  "createvoidway.void_motor_output.over_stressed": "输出端过载：负载超过分配的应力容量",
   "itemGroup.createvoidway.base": "机械动力：虚空通道",
   "block.createvoidway.lshaped_gearbox": "L形齿轮箱",
   "fluid.createvoidway.void_transfer_fluid": "虚空传送液",

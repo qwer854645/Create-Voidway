@@ -34,7 +34,7 @@ public final class VoidwayConfig {
 
 	private static final ModConfigSpec.IntValue VOID_MOTOR_OUTPUT_MAX_STRESS_CAPACITY = BUILDER
 			.comment("Maximum stress capacity (SU) of a single void motor output.")
-			.comment("Stress scales with RPM and reaches this value at 256 RPM (and is capped above that).")
+			.comment("Active outputs share channel capacity equally, independently of their configured RPM.")
 			.defineInRange("voidMotorOutputMaxStressCapacity", 10240, 0, 10000000);
 
 	private static final ModConfigSpec.IntValue VOID_CHEST_STRESS_BASE = BUILDER
@@ -215,10 +215,6 @@ public final class VoidwayConfig {
 
 	public static int getVoidMotorOutputMaxStressCapacity() {
 		return voidMotorOutputMaxStressCapacity;
-	}
-
-	public static float getVoidMotorOutputStressPerRpm() {
-		return voidMotorOutputMaxStressCapacity / (float) VoidMotorOutputTileEntity.MAX_SPEED;
 	}
 
 	public static int getVoidChestStressBase() {
