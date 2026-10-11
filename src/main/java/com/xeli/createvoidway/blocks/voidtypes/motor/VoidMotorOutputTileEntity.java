@@ -86,7 +86,7 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	public float getRequestedChannelStress() {
 		if (generatedSpeed == null)
 			return 0;
-		float raw = (float) Math.floor(VoidwayConfig.getVoidMotorOutputStressPerRpm() * Math.abs(generatedSpeed.getValue()));
+		float raw = VoidwayConfig.getVoidMotorOutputStressPerRpm() * Math.abs(generatedSpeed.getValue());
 		return Math.min(raw, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
 	}
 
@@ -178,7 +178,7 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 	public void applyGrantedSpeed(float rpm) {
 		if (level == null || level.isClientSide)
 			return;
-		if (Math.abs(grantedRpm - rpm) < 1e-4f)
+		if (Float.compare(grantedRpm, rpm) == 0)
 			return;
 		grantedRpm = rpm;
 		updateGeneratedRotation();
@@ -256,12 +256,12 @@ public class VoidMotorOutputTileEntity extends GeneratingKineticBlockEntity
 					.forGoggles(tooltip);
 			if (Math.abs(grantedRpm) < Math.abs(getRequestedRpm()) && getRequestedRpm() != 0) {
 				new LangBuilder(VoidwayMod.ID)
-						.translate("void_motor_output.stress_limited", (int) Math.abs(grantedRpm))
+						.translate("void_motor_output.stress_limited", Math.abs(grantedRpm))
 						.style(ChatFormatting.RED)
 						.forGoggles(tooltip);
 			} else if (Math.abs(grantedRpm) > 0) {
 				new LangBuilder(VoidwayMod.ID)
-						.translate("void_motor_output.transmitting", (int) Math.abs(grantedRpm))
+						.translate("void_motor_output.transmitting", Math.abs(grantedRpm))
 						.style(ChatFormatting.GREEN)
 						.forGoggles(tooltip);
 			}

@@ -100,23 +100,13 @@ public class VoidMotorNetworkHandler {
 		for (VoidMotorOutputTileEntity output : outputs)
 			totalDemand += output.getRequestedChannelStress();
 
-		float scale = totalDemand <= 1e-4f || totalStressIn >= totalDemand
-				? 1f
-				: totalStressIn / totalDemand;
-
 		for (VoidMotorOutputTileEntity output : outputs) {
 			int requested = output.getRequestedRpm();
-			float granted = requested * scale;
-			if (granted != 0)
-				granted = Math.copySign((float) Math.floor(Math.abs(granted)), granted);
 			float stressPerRpm = VoidwayConfig.getVoidMotorOutputStressPerRpm();
-			if (stressPerRpm > 1e-6f) {
-				float maxRpm = VoidwayConfig.getVoidMotorOutputMaxStressCapacity() / stressPerRpm;
-				if (Math.abs(granted) > maxRpm)
-					granted = Math.copySign((float) Math.floor(maxRpm), granted);
-			}
+			float granted = VoidMotorStressBudget.grantRpm(requested, totalStressIn, totalDemand,
+					stressPerRpm, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
 			output.applyGrantedSpeed(granted);
-			float used = (float) Math.floor(stressPerRpm * Math.abs(granted));
+			float used = stressPerRpm * Math.abs(granted);
 			used = Math.min(used, VoidwayConfig.getVoidMotorOutputMaxStressCapacity());
 			output.setChannelStressStats(totalStressIn, used);
 		}

@@ -16,6 +16,14 @@ public final class VoidMotorStressBudgetTest {
         check(0, VoidMotorStressBudget.allocate(256, 300, 0, 320, 320));
         check(320, VoidMotorStressBudget.allocate(10240, 0, 0, 320, 320));
         check(0, VoidMotorStressBudget.allocate(0, 0, 0, 320, 320));
+        check(0.7f, VoidMotorStressBudget.grantRpm(16, 28, 640, 40, 10240));
+        check(-0.7f, VoidMotorStressBudget.grantRpm(-16, 28, 640, 40, 10240));
+        check(0, VoidMotorStressBudget.grantRpm(16, 0, 640, 40, 10240));
+        check(16, VoidMotorStressBudget.grantRpm(16, 10240, 640, 40, 10240));
+        float firstRpm = VoidMotorStressBudget.grantRpm(16, 28, 1280, 40, 10240);
+        float secondRpm = VoidMotorStressBudget.grantRpm(16, 28, 1280, 40, 10240);
+        check(28, (Math.abs(firstRpm) + Math.abs(secondRpm)) * 40);
+        check(0, VoidMotorStressBudget.grantRpm(16, 28, 640, 0, 0));
         System.out.println("Motor stress allocation regression checks passed.");
     }
 
